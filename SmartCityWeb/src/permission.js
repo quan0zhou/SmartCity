@@ -1,51 +1,83 @@
-import router from './router';
-import { getCache } from '@/utils/session';
-import getPageTitle from '@/utils/getPageTitle';
-import NProgress from 'nprogress'; // progress bar
-import 'nprogress/nprogress.css'; // progress bar style
-import { message } from 'ant-design-vue';
-import store from './store';
+import router, { resetRouter } from './router'
+import store from './store'
+import storage from 'store'
+import NProgress from 'nprogress' // progress bar
+import '@/components/NProgress/nprogress.less' // progress bar custom style
+import notification from 'ant-design-vue/es/notification'
+import { setDocumentTitle, domTitle } from '@/utils/domUtil'
+import { ACCESS_TOKEN } from '@/store/mutation-types'
+import { i18nRender } from '@/locales'
+import { generatorDynamicRouter } from '@/router/generator-routers'
 
-NProgress.configure({ showSpinner: false }); // NProgress Configuration
+NProgress.configure({ showSpinner: false }) // NProgress Configuration
 
-router.beforeEach(async (to, from, next) => {
-  NProgress.start();
-  document.title = getPageTitle(to.meta.title);
-  const isLogin = getCache('TOKEN');
-  if (to.path == '/login') {
-    next();
-    NProgress.done();
-  } else {
-    if (!isLogin) {
-      next('/login');
+const allowList = ['login', 'register', 'registerResult'] // no redirect allowList
+const loginRoutePath = '/user/login'
+const defaultRoutePath = '/dashboard/workplace'
+
+router.beforeEach((to, from, next) => {
+  NProgress.start() // start progress bar
+  to.meta && typeof to.meta.title !== 'undefined' && setDocumentTitle(`${i18nRender(to.meta.title)} - ${domTitle}`)
+  /* has token */
+  const token = storage.get(ACCESS_TOKEN)
+  if (token) {
+    if (to.path === loginRoutePath) {
+      next({ path: defaultRoutePath })
+      NProgress.done()
     } else {
-      const route = store.state.permission.routes;
-      if (route.length > 0) {
-        next();
-        NProgress.done();
+      // check login user.roles is null
+      if (store.getters.roles.length === 0) {
+        // request login userInfo
+        store
+          .dispatch('GetInfo')
+          .then(res => {
+            // generate dynamic router
+            generatorDynamicRouter(token).then(routers => {
+              store.commit('SET_ROUTERS', routers)
+
+              // 根据roles权限生成可访问的路由表
+              // 动态添加可访问路由表
+              // VueRouter@3.5.0+ New API
+              resetRouter() // 重置路由 防止退出重新登录或者token过期后页面未刷新，导致的路由重复添加
+              store.getters.addRouters.forEach(r => {
+                router.addRoute(r)
+              })
+              // 请求带有 redirect 重定向时，登录自动重定向到该地址
+              const redirect = decodeURIComponent(from.query.redirect || to.path)
+              if (to.path === redirect) {
+                // set the replace: true so the navigation will not leave a history record
+                next({ ...to, replace: true })
+              } else {
+                // 跳转到目的路由
+                next({ path: redirect })
+              }
+            })
+          })
+          .catch(() => {
+            notification.error({
+              message: '错误',
+              description: '请求用户信息失败，请重试'
+            })
+            // 失败时，获取用户信息失败时，调用登出，来清空历史保留信息
+            store.dispatch('Logout').then(() => {
+              next({ path: loginRoutePath, query: { redirect: to.fullPath } })
+            })
+          })
       } else {
-        const userInfo = store.state.user.accountInfo;
-        try {
-          const { roleIds } = userInfo;
-          const accountRoute = await store.dispatch('permission/getRoute', roleIds);
-          router.addRoutes(accountRoute);
-          if (from.path == '/login') {
-            next(accountRoute[0].children[0].path);
-          } else {
-            next({ ...to, replace: true });
-          }
-          NProgress.done();
-        } catch (error) {
-          console.log(error);
-          message.error('获取用户信息失败');
-          next('/login');
-          NProgress.done();
-        }
+        next()
       }
     }
+  } else {
+    if (allowList.includes(to.name)) {
+      // 在免登录名单，直接进入
+      next()
+    } else {
+      next({ path: loginRoutePath, query: { redirect: to.fullPath } })
+      NProgress.done() // if current page is login will not trigger afterEach hook, so manually handle it
+    }
   }
-});
+})
 
 router.afterEach(() => {
-  NProgress.done();
-});
+  NProgress.done() // finish progress bar
+})

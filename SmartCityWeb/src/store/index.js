@@ -1,22 +1,29 @@
-import Vue from 'vue';
-import Vuex from 'vuex';
-import getters from './getters';
+import Vue from 'vue'
+import Vuex from 'vuex'
 
-Vue.use(Vuex);
+import app from './modules/app'
+import user from './modules/user'
 
-//导入modules文件夹下所有的js文件
-const modulesFiles = require.context('./modules', true, /\.js$/);
+// default router permission control
+// 默认路由模式为静态路由 (router.config.js)
+import permission from './modules/permission'
 
-const modules = modulesFiles.keys().reduce((modules, modulePath) => {
-  const moduleName = modulePath.replace(/^\.\/(.*)\.\w+$/, '$1');
-  const value = modulesFiles(modulePath);
-  modules[moduleName] = value.default;
-  return modules;
-}, {});
+// dynamic router permission control (Experimental)
+// 动态路由模式（api请求后端生成）
+// import permission from './modules/async-router'
 
-const store = new Vuex.Store({
-  modules,
+import getters from './getters'
+
+Vue.use(Vuex)
+
+export default new Vuex.Store({
+  modules: {
+    app,
+    user,
+    permission
+  },
+  state: {},
+  mutations: {},
+  actions: {},
   getters
-});
-
-export default store;
+})

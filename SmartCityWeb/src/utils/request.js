@@ -1,70 +1,72 @@
-import axios from 'axios';
-import { message } from 'ant-design-vue';
-import qs from 'qs';
-import store from '@/store';
+import axios from 'axios'
+import store from '@/store'
+import storage from 'store'
+import notification from 'ant-design-vue/es/notification'
+import { VueAxios } from './axios'
+import { ACCESS_TOKEN } from '@/store/mutation-types'
 
-const service = axios.create({
-  baseURL: process.env.VUE_APP_BASE_API,
-  timeout: 5000 // 请求超时时间
-});
+// 创建 axios 实例
+const request = axios.create({
+  // API 请求的默认前缀
+  baseURL: process.env.VUE_APP_API_BASE_URL,
+  timeout: 6000 // 请求超时时间
+})
 
-//请求
-service.interceptors.request.use(config => {
-  if (store.getters.token) {
-    config.headers['authorization'] = store.getters.token;
-  }
-  return config;
-});
-
-//响应
-service.interceptors.response.use(response => {
-  const data = response.data;
-  if (data.code === 200) {
-    return Promise.resolve(response);
-  } else {
-    message.error(response.data.message || '');
-    return Promise.reject(response);
-  }
-});
-
-let http = {};
-
-/**
- * get方法，对应get请求
- * @param {String} url [请求的url地址]
- * @param {Object} params [请求时携带的参数]
- */
-
-http.get = function(url, params = null) {
-  return new Promise((resolve, reject) => {
-    service
-      .get(url, { params })
-      .then(res => {
-        resolve(res.data);
+// 异常拦截处理器
+const errorHandler = (error) => {
+  if (error.response) {
+    const data = error.response.data
+    // 从 localstorage 获取 token
+    const token = storage.get(ACCESS_TOKEN)
+    if (error.response.status === 403) {
+      notification.error({
+        message: 'Forbidden',
+        description: data.message
       })
-      .catch(e => {
-        reject(e);
-      });
-  });
-};
-
-/**
- * post方法，对应post请求
- * @param {String} url [请求的url地址]
- * @param {Object} params [请求时携带的参数]
- */
-
-http.post = function(url, params) {
-  return new Promise((resolve, reject) => {
-    service
-      .post(url, qs.stringify(params))
-      .then(res => {
-        resolve(res.data);
+    }
+    if (error.response.status === 401 && !(data.result && data.result.isLogin)) {
+      notification.error({
+        message: 'Unauthorized',
+        description: 'Authorization verification failed'
       })
-      .catch(e => {
-        reject(e);
-      });
-  });
-};
+      if (token) {
+        store.dispatch('Logout').then(() => {
+          setTimeout(() => {
+            window.location.reload()
+          }, 1500)
+        })
+      }
+    }
+  }
+  return Promise.reject(error)
+}
 
-export default http;
+// request interceptor
+request.interceptors.request.use(config => {
+  const token = storage.get(ACCESS_TOKEN)
+  // 如果 token 存在
+  // 让每个请求携带自定义 token 请根据实际情况自行修改
+  if (token) {
+    config.headers[ACCESS_TOKEN] = token
+  }
+  return config
+}, errorHandler)
+
+// response interceptor
+request.interceptors.response.use((response) => {
+  return response.data
+}, errorHandler)
+
+const installer = {
+  vm: {},
+  install (Vue) {
+    Vue.use(VueAxios, request)
+  }
+}
+
+export default request
+
+export {
+  installer as VueAxios,
+  request as axios
+}
