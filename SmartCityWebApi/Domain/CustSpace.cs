@@ -7,15 +7,24 @@ namespace SmartCityWebApi.Domain
     public class CustSpace
     {
         [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.None)]
         public long SpaceId { get; set; }
 
+        [Column(TypeName = "varchar(50)")]
         public string SpaceName { get; set; } = string.Empty;
 
+        [Column(TypeName = "varchar(200)")]
         public string SpaceAddress { get; set; } = string.Empty;
+
+        [Column(TypeName = "varchar(20)")]
         public string ContactName { get; set; } = string.Empty;
 
+
+        [Column(TypeName = "varchar(20)")]
         public string ContactPhone { get; set; } = string.Empty;
 
+
+        [Column(TypeName = "varchar(500)")]
         public string Remark { get; set; } = string.Empty;
 
         /// <summary>
@@ -25,10 +34,12 @@ namespace SmartCityWebApi.Domain
 
         public long CreateUser { get; set; }
 
+        [Column(TypeName = "timestamp")]
         public DateTime CreateTime { get; set; }
 
         public long UpdateUser { get; set; }
 
+        [Column(TypeName = "timestamp")]
         public DateTime UpdateTime { get; set; }
 
     }

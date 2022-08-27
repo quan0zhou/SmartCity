@@ -7,6 +7,7 @@ namespace SmartCityWebApi.Domain
     public class UserPermission
     {
         [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.None)]
         public long UserPermissionId { get; set; }
 
         public long UserId { get; set; }
