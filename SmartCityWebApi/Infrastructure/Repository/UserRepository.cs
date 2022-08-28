@@ -16,6 +16,11 @@ namespace SmartCityWebApi.Infrastructure.Repository
             _idGenerator = idGenerator;
         }
 
+        public async ValueTask<int[]> GetUserPermission(long UserId)
+        {
+            return await _smartCityContext.UserPermissions.AsNoTracking().Where(r => r.UserId.Equals(UserId)).Select(r => r.PageId).ToArrayAsync();
+        }
+
         public async ValueTask<bool> InitData()
         {
 
@@ -25,7 +30,7 @@ namespace SmartCityWebApi.Infrastructure.Repository
                 {
                     UserId = _idGenerator.CreateId(),
                     UserAccount = "admin",
-                    UserAccountPwd = "测试".ToMd5().ToSha256Encrypt(),
+                    UserAccountPwd = "admin000".ToMd5().ToSha256Encrypt(),
                     ContactPhone = string.Empty,
                     CreateTime = DateTime.Now,
                     CreateUser = 0,

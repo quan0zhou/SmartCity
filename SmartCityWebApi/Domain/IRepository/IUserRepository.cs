@@ -9,5 +9,7 @@
         ValueTask<bool> InitData();
 
         ValueTask<User?> Login(string account,string pwd);
+
+        ValueTask<int[]> GetUserPermission(long UserId);
     }
 }

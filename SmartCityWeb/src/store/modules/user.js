@@ -2,14 +2,12 @@ import storage from 'store'
 import expirePlugin from 'store/plugins/expire'
 import { login, getInfo, logout } from '@/api/login'
 import { ACCESS_TOKEN } from '@/store/mutation-types'
-import { welcome } from '@/utils/util'
 
 storage.addPlugin(expirePlugin)
 const user = {
   state: {
     token: '',
     name: '',
-    welcome: '',
     avatar: '',
     roles: [],
     info: {}
@@ -19,9 +17,8 @@ const user = {
     SET_TOKEN: (state, token) => {
       state.token = token
     },
-    SET_NAME: (state, { name, welcome }) => {
+    SET_NAME: (state, name) => {
       state.name = name
-      state.welcome = welcome
     },
     SET_AVATAR: (state, avatar) => {
       state.avatar = avatar
@@ -39,9 +36,8 @@ const user = {
     Login ({ commit }, userInfo) {
       return new Promise((resolve, reject) => {
         login(userInfo).then(response => {
-          const result = response.result
-          storage.set(ACCESS_TOKEN, result.token, new Date().getTime() + 7 * 24 * 60 * 60 * 1000)
-          commit('SET_TOKEN', result.token)
+          storage.set(ACCESS_TOKEN, response.token, new Date().getTime() + 7 * 24 * 60 * 60 * 1000)
+          commit('SET_TOKEN', response.token)
           resolve()
         }).catch(error => {
           reject(error)
@@ -53,26 +49,24 @@ const user = {
     GetInfo ({ commit }) {
       return new Promise((resolve, reject) => {
         getInfo().then(response => {
-          const result = response.result
-
-          if (result.role && result.role.permissions.length > 0) {
-            const role = result.role
-            role.permissions = result.role.permissions
-            role.permissions.map(per => {
-              if (per.actionEntitySet != null && per.actionEntitySet.length > 0) {
-                const action = per.actionEntitySet.map(action => { return action.action })
-                per.actionList = action
-              }
-            })
-            role.permissionList = role.permissions.map(permission => { return permission.permissionId })
-            commit('SET_ROLES', result.role)
-            commit('SET_INFO', result)
+          if (response.user) {
+            // const role = result.role
+            // role.permissions = result.role.permissions
+            // role.permissions.map(per => {
+            //   if (per.actionEntitySet != null && per.actionEntitySet.length > 0) {
+            //     const action = per.actionEntitySet.map(action => { return action.action })
+            //     per.actionList = action
+            //   }
+            // })
+            // role.permissionList = role.permissions.map(permission => { return permission.permissionId })
+            commit('SET_ROLES', [])
+            commit('SET_INFO', response.user)
           } else {
             reject(new Error('getInfo: roles must be a non-null array !'))
           }
 
-          commit('SET_NAME', { name: result.name, welcome: welcome() })
-          commit('SET_AVATAR', result.avatar)
+          commit('SET_NAME', response.user.userName)
+          commit('SET_AVATAR', '')
 
           resolve(response)
         }).catch(error => {

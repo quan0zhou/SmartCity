@@ -11,7 +11,7 @@ import { generatorDynamicRouter } from '@/router/generator-routers'
 
 NProgress.configure({ showSpinner: false }) // NProgress Configuration
 
-const allowList = ['login', 'register', 'registerResult'] // no redirect allowList
+const allowList = ['login'] // no redirect allowList
 const loginRoutePath = '/user/login'
 const defaultRoutePath = '/dashboard/workplace'
 
@@ -26,7 +26,7 @@ router.beforeEach((to, from, next) => {
       NProgress.done()
     } else {
       // check login user.roles is null
-      if (store.getters.roles.length === 0) {
+      if (store.getters.nickname.length <= 0) {
         // request login userInfo
         store
           .dispatch('GetInfo')

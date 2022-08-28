@@ -42,20 +42,26 @@ namespace SmartCityWebApi.Controllers
                         new Claim("IsAdmin", user.IsAdmin?"1":"0")
                     };
 
-                var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
+                var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JwtToken:SecretKey"]));
                 var signIn = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
                 var token = new JwtSecurityToken(
-                    _configuration["Jwt:Issuer"],
-                    _configuration["Jwt:Audience"],
+                    _configuration["JwtToken:Issuer"],
+                    _configuration["JwtToken:Audience"],
                     claims,
                     expires: DateTime.UtcNow.AddMinutes(20),
                     signingCredentials: signIn);
-                return Ok(new JwtSecurityTokenHandler().WriteToken(token));
+                return Ok(new { token= new JwtSecurityTokenHandler().WriteToken(token) } );
             }
             else
             {
-                return BadRequest("账号或密码不正确");
+                return BadRequest(new { message= "账号或密码不正确" });
             }
+        }
+
+        [HttpPost("LogOut")]
+        public IActionResult LogOut() 
+        {
+            return Ok();
         }
     }
 }
