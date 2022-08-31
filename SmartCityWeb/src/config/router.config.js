@@ -138,7 +138,7 @@ export const asyncRouterMap = [
           {
             path: '/profile/basic',
             name: 'ProfileBasic',
-            component: () => import('@/views/profile/basic'),
+            component: () => import('@/views/profile/basic/index'),
             meta: { title: 'menu.profile.basic', permission: ['profile'] }
           },
           {

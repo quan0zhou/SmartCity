@@ -94,7 +94,9 @@ export default {
           values['oldPassword'] = md5(values.oldPassword)
           values['password'] = md5(values.password)
           values['confirmPassword'] = md5(values.confirmPassword)
+          this.confirmLoading = true
           this.$http.post('/user/changePwd', values).then(res => {
+            this.confirmLoading = false
             if (res.status) {
               this.visible = false
               this.$message.success(res.msg, 3)

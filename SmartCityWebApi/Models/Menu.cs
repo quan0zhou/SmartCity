@@ -27,27 +27,14 @@ namespace SmartCityWebApi.Models
              {
                Icon="home",
                Title="首页",
-               Show= true
+               HideChildren=true
 
              })
              {
                  Name="dashboard",
                  ParentId=0,
                  Id=1000,
-                 Component="RouteView",
-                 Redirect="/dashboard/workplace"
-             },
-              new Menu (new Meta
-             {
-               Title="主页",
-               Show= true
-
-             })
-             {
-                 Name="workplace",
-                 ParentId=1000,
-                 Id=1001,
-                 Component="Workplace"
+                 Component="Workplace",         
              },
               new Menu (new Meta
              {
@@ -73,7 +60,7 @@ namespace SmartCityWebApi.Models
                  Id=2001,
                  Component="BasicForm"
              },
-                   new Menu (new Meta
+              new Menu (new Meta
              {
                Title="订单记录"
 
@@ -84,7 +71,72 @@ namespace SmartCityWebApi.Models
                  Id=2002,
                  Component="StepForm"
              },
+              new Menu (new Meta
+             {
+               Icon="table",
+               Title="后台管理"
 
+             })
+             {
+                 Name="list",
+                 ParentId=0,
+                 Id=3000,
+                 Component="RouteView",
+
+             },  
+             new Menu (new Meta
+             {
+               Title="场库管理"
+
+             })
+             {
+                 Name="park",
+                 ParentId=3000,
+                 Id=3001,
+                 Component="TableList"
+             },
+              new Menu (new Meta
+             {
+               Title="配置管理"
+
+             })
+             {
+                 Name="setting",
+                 ParentId=3000,
+                 Id=3002,
+                 Component="StandardList"
+             },
+                new Menu (new Meta
+             {
+               Icon="user",
+               Title="用户管理",
+               HiddenHeaderContent=true,
+               HideHeader=true,
+               HideChildren=false,
+
+             })
+             {
+                 Name="userManage",
+                 ParentId=0,
+                 Id=4000,
+                 Component="RouteView",
+
+             },
+              new Menu (new Meta
+             {
+               Title="用户列表",
+               HiddenHeaderContent=true,
+               HideHeader=true,
+               HideChildren=true,
+              
+
+             })
+             {
+                 Name="user",
+                 ParentId=4000,
+                 Id=4001,
+                 Component="ProfileBasic"
+             },
         };
 
     }

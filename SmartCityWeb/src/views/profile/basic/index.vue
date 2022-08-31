@@ -1,5 +1,5 @@
 <template>
-  <page-header-wrapper>
+  <page-header-wrapper :breadcrumb="true" :title="false">
     <a-card :bordered="false">
       <a-descriptions title="退款申请">
         <a-descriptions-item label="取货单号">1000000000</a-descriptions-item>
@@ -53,6 +53,7 @@ export default {
   },
   data () {
     return {
+      headTitle: '',
       goodsColumns: [
         {
           title: '商品编号',
