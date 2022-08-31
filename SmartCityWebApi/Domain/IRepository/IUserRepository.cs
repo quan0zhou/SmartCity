@@ -1,4 +1,6 @@
-﻿namespace SmartCityWebApi.Domain.IRepository
+﻿using SmartCityWebApi.Infrastructure;
+
+namespace SmartCityWebApi.Domain.IRepository
 {
     public interface IUserRepository
     {
@@ -8,8 +10,13 @@
         /// <returns></returns>
         ValueTask<bool> InitData();
 
-        ValueTask<User?> Login(string account,string pwd);
+        ValueTask<User?> Login(string account, string pwd);
 
         ValueTask<int[]> GetUserPermission(long UserId);
+
+        ValueTask<bool> ExistsUser(long UserId, string pwd);
+
+        ValueTask<bool> ChangeUserPwd(long UserId, string pwd);
+
     }
 }

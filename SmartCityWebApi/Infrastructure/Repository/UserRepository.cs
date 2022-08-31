@@ -53,5 +53,15 @@ namespace SmartCityWebApi.Infrastructure.Repository
         {
             return await _smartCityContext.Users.AsNoTracking().Where(r => r.UserAccount.Equals(account) && r.UserAccountPwd.Equals(pwd)).FirstOrDefaultAsync();
         }
+
+        public async ValueTask<bool> ExistsUser(long UserId,string pwd) 
+        {
+            return await _smartCityContext.Users.AnyAsync(r => r.UserId.Equals(UserId) && r.UserAccountPwd.Equals(pwd));
+        }
+
+        public async ValueTask<bool> ChangeUserPwd(long UserId, string pwd) 
+        {
+            return await _smartCityContext.Database.ExecuteSqlInterpolatedAsync($"UPDATE \"user\"  SET \"UserAccountPwd\" ={pwd},\"UpdateUser\"={UserId},\"UpdateTime\"=now() WHERE \"UserId\"={UserId}") > 0;
+        }
     }
 }

@@ -25,44 +25,65 @@ namespace SmartCityWebApi.Models
         {
              new Menu (new Meta
              {
-               Icon="dashboard",
-               Title="仪表盘",
+               Icon="home",
+               Title="首页",
                Show= true
 
              })
              {
                  Name="dashboard",
                  ParentId=0,
-                 Id=1,
+                 Id=1000,
                  Component="RouteView",
                  Redirect="/dashboard/workplace"
              },
               new Menu (new Meta
              {
-               Title="工作台",
+               Title="主页",
                Show= true
 
              })
              {
                  Name="workplace",
-                 ParentId=1,
-                 Id=7,
+                 ParentId=1000,
+                 Id=1001,
                  Component="Workplace"
              },
-             new Menu (new Meta
+              new Menu (new Meta
              {
-               Title="分析页",
-               Show= true
+               Icon="form",
+               Title="预订管理"
 
              })
              {
-                 Name="Analysis",
-                 ParentId=1,
-                 Id=2,
-                 Component="Analysis",
-                 Path="/dashboard/analysis"
+                 Name="form",
+                 ParentId=0,
+                 Id=2000,
+                 Component="RouteView",
+               
              },
+                new Menu (new Meta
+             {
+               Title="预订"
 
+             })
+             {
+                 Name="basicform",
+                 ParentId=2000,
+                 Id=2001,
+                 Component="BasicForm"
+             },
+                   new Menu (new Meta
+             {
+               Title="订单记录"
+
+             })
+             {
+                 Name="stepForm",
+                 ParentId=2000,
+                 Id=2002,
+                 Component="StepForm"
+             },
 
         };
 
