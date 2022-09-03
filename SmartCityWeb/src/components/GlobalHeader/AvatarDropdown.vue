@@ -27,6 +27,7 @@
       :title="title"
       :confirm-loading="confirmLoading"
       @ok="handleOk"
+      :maskClosable="false"
       @cancel="visible=false"
     >
       <a-form :form="form" :label-col="{ span: 5 }" :wrapper-col="{ span: 16 }" >
@@ -95,7 +96,7 @@ export default {
           values['password'] = md5(values.password)
           values['confirmPassword'] = md5(values.confirmPassword)
           this.confirmLoading = true
-          this.$http.post('/user/changePwd', values).then(res => {
+          this.$http.patch('/user/pwd', values).then(res => {
             this.confirmLoading = false
             if (res.status) {
               this.visible = false

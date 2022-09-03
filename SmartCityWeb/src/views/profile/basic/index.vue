@@ -1,224 +1,298 @@
 <template>
   <page-header-wrapper :breadcrumb="true" :title="false">
     <a-card :bordered="false">
-      <a-descriptions title="退款申请">
-        <a-descriptions-item label="取货单号">1000000000</a-descriptions-item>
-        <a-descriptions-item label="状态">已取货</a-descriptions-item>
-        <a-descriptions-item label="销售单号">1234123421</a-descriptions-item>
-        <a-descriptions-item label="子订单">3214321432</a-descriptions-item>
-      </a-descriptions>
-      <a-divider style="margin-bottom: 32px"/>
-      <a-descriptions title="用户信息">
-        <a-descriptions-item label="用户姓名">付小小</a-descriptions-item>
-        <a-descriptions-item label="联系电话">18100000000</a-descriptions-item>
-        <a-descriptions-item label="常用快递">菜鸟仓储</a-descriptions-item>
-        <a-descriptions-item label="取货地址">浙江省杭州市西湖区万塘路18号</a-descriptions-item>
-        <a-descriptions-item label="备注">	无</a-descriptions-item>
-      </a-descriptions>
-      <a-divider style="margin-bottom: 32px"/>
-
-      <div class="title">退货商品</div>
-      <s-table
-        style="margin-bottom: 24px"
-        row-key="id"
-        :columns="goodsColumns"
-        :data="loadGoodsData">
-
-      </s-table>
-
-      <div class="title">退货进度</div>
-      <s-table
-        style="margin-bottom: 24px"
-        row-key="key"
-        :columns="scheduleColumns"
-        :data="loadScheduleData">
-
-        <template
-          slot="status"
-          slot-scope="status">
-          <a-badge :status="status" :text="status | statusFilter"/>
-        </template>
-
-      </s-table>
+      <div class="table-page-search-wrapper">
+        <a-form layout="inline">
+          <a-row :gutter="48">
+            <a-col :md="8" :sm="24">
+              <a-form-item label="关键字">
+                <a-input v-model="queryParam.keyword" placeholder="请输入用户名或账号"/>
+              </a-form-item>
+            </a-col>
+            <a-col :md="8" :sm="24">
+              <span class="table-page-search-submitButtons" >
+                <a-button type="primary" @click="$refs.table.refresh(true)">查询</a-button>
+                <a-button style="margin-left: 8px" @click="() => this.queryParam = {}">重置</a-button>
+              </span>
+            </a-col>
+          </a-row>
+        </a-form>
+      </div>
     </a-card>
+    <template>
+      <a-card :bordered="false">
+        <a-button type="primary" class="editable-add-btn" @click="handleAdd">
+          新增
+        </a-button>
+        <s-table
+          ref="table"
+          rowKey="userId"
+          size="default"
+          :columns="columns"
+          :data="loadData"
+        >
+          <span slot="isAdmin" slot-scope="text,record">
+            <template>
+              <a-tag color="red" v-if="record.isAdmin">
+                管理员
+              </a-tag>
+              <a-tag color="blue" v-else>
+                普通用户
+              </a-tag>
+            </template>
+          </span>
+          <span slot="action" slot-scope="text, record">
+            <template>
+              <a-button size="small" @click="handleInfo(record)">查看</a-button>
+              <span v-if="!record.isAdmin">
+                <a-divider type="vertical" />
+                <a-button @click="handleEdit(record)" type="primary" size="small">编辑</a-button>
+                <a-divider type="vertical" />
+                <a-button @click="handleDelete(record)" type="danger" size="small">删除</a-button>
+              </span>
+            </template>
+          </span>
+        </s-table>
+      </a-card>
+    </template>
+    <a-modal
+      :title="title"
+      :maskClosable="false"
+      :width="660"
+      :visible="visible"
+      :confirm-loading="confirmLoading"
+    >
+      <template>
+        <a-form-model
+          ref="ruleForm"
+          :model="form"
+          :rules="rules"
+          layout="inline"
+          :label-col="labelCol"
+          :wrapper-col="wrapperCol"
+        >
+          <a-row>
+            <a-col :span="12">
+              <a-form-model-item ref="userName" label="用户名" prop="userName">
+                <a-input
+                  v-model="form.userName"
+                  placeholder="请输入用户名"
+                />
+              </a-form-model-item>
+            </a-col>
+            <a-col :span="12">
+              <a-form-model-item label="用户账号" prop="userAccount">
+                <a-input
+                  v-model="form.userAccount"
+                  placeholder="请输入用户账号"/>
+              </a-form-model-item>
+            </a-col>
+          </a-row>
+          <a-row>
+            <a-col :span="12" v-if="isShowPwd">
+              <a-tooltip>
+                <template slot="title">
+                  默认密码：qwer123
+                </template>
+                <a-form-model-item label="账号密码" prop="userAccountPwd">
+                  <a-input
+                    type="password"
+                    v-model="form.userAccountPwd"
+                    placeholder="请输入用户密码"/>
+                </a-form-model-item>
+              </a-tooltip>
+
+            </a-col>
+            <a-col :span="12">
+              <a-form-model-item label="用户手机号" prop="contactPhone">
+                <a-input
+                  v-model="form.contactPhone"
+                  placeholder="请输入用户手机号"/>
+              </a-form-model-item>
+            </a-col>
+          </a-row>
+          <a-row>
+            <a-col :span="24">
+              <a-form-model-item label="备注" prop="remark">
+                <a-input v-model="form.remark" type="textarea" placeholder="请输入备注" />
+              </a-form-model-item>
+            </a-col>
+          </a-row>
+          <a-divider>用户权限</a-divider>
+          <a-row>
+            <a-col :span="24">
+              <a-checkbox v-model="checkAll" class="checkbox_all" @change="onCheckAllChange">全选</a-checkbox>
+              <a-checkbox-group v-model="form.pers" :options="options" @change="onChange" />
+            </a-col>
+          </a-row>
+        </a-form-model>
+      </template>
+      <template slot="footer">
+        <a-button type="white" @click="visible=false">取消</a-button>
+        <a-button type="primary" @click="handleOk" v-if="isSave">确定</a-button>
+      </template>
+    </a-modal>
   </page-header-wrapper>
 </template>
 
 <script>
 import { STable } from '@/components'
-
+import md5 from 'md5'
 export default {
   components: {
     STable
   },
   data () {
     return {
-      headTitle: '',
-      goodsColumns: [
+      footer: 'OK',
+      checkAll: false,
+      isSave: false,
+      options: [{ label: '首页', value: 1000 }, { label: '预订', value: 2001 }, { label: '订单记录', value: 2002 }, { label: '场库管理', value: 3001 }, { label: '配置管理', value: 3002 }, { label: '用户列表', value: 4001 }],
+      labelCol: { },
+      wrapperCol: { },
+     form: {
+        userName: '',
+        userAccount: '',
+        userAccountPwd: '',
+        contactPhone: '',
+        remark: '',
+        pers: []
+      },
+      rules: {
+        userName: [
+           { required: true, message: '请输入用户名称', trigger: 'blur' },
+           { max: 50, message: '最大字符50个', trigger: 'blur' }
+        ],
+        userAccount: [
+           { required: true, message: '请输入用户账号', trigger: 'blur' },
+           { max: 20, message: '最大字符20个', trigger: 'blur' }
+          ],
+        userAccountPwd: [
+          { required: true, message: '请输入账号密码', trigger: 'blur' },
+          { max: 20, message: '最大字符20个', trigger: 'blur' }
+        ]
+      },
+      title: '',
+      isShowPwd: false,
+      visible: false,
+      confirmLoading: false,
+      queryParam: {},
+      columns: [
         {
-          title: '商品编号',
-          dataIndex: 'id',
-          key: 'id'
+          title: '用户名称',
+          dataIndex: 'userName',
+          key: 'userName'
         },
         {
-          title: '商品名称',
-          dataIndex: 'name',
-          key: 'name'
+          title: '用户账号',
+          dataIndex: 'userAccount',
+          key: 'userAccount'
         },
         {
-          title: '商品条码',
-          dataIndex: 'barcode',
-          key: 'barcode'
+          title: '手机号',
+          dataIndex: 'contactPhone',
+          key: 'contactPhone'
         },
         {
-          title: '单价',
-          dataIndex: 'price',
-          key: 'price',
-          align: 'right'
+          title: '是否管理员',
+          dataIndex: 'isAdmin',
+          key: 'isAdmin',
+           scopedSlots: { customRender: 'isAdmin' }
         },
         {
-          title: '数量（件）',
-          dataIndex: 'num',
-          key: 'num',
-          align: 'right'
+          title: '备注',
+          dataIndex: 'remark',
+          key: 'remark',
+          align: 'left'
         },
         {
-          title: '金额',
-          dataIndex: 'amount',
-          key: 'amount',
-          align: 'right'
-        }
+            title: '操作',
+            width: 220,
+            dataIndex: 'action',
+            scopedSlots: { customRender: 'action' }
+          }
       ],
       // 加载数据方法 必须为 Promise 对象
-      loadGoodsData: () => {
-        return new Promise(resolve => {
-          resolve({
-            data: [
-              {
-                id: '1234561',
-                name: '矿泉水 550ml',
-                barcode: '12421432143214321',
-                price: '2.00',
-                num: '1',
-                amount: '2.00'
-              },
-              {
-                id: '1234562',
-                name: '凉茶 300ml',
-                barcode: '12421432143214322',
-                price: '3.00',
-                num: '2',
-                amount: '6.00'
-              },
-              {
-                id: '1234563',
-                name: '好吃的薯片',
-                barcode: '12421432143214323',
-                price: '7.00',
-                num: '4',
-                amount: '28.00'
-              },
-              {
-                id: '1234564',
-                name: '特别好吃的蛋卷',
-                barcode: '12421432143214324',
-                price: '8.50',
-                num: '3',
-                amount: '25.50'
-              }
-            ],
-            pageSize: 10,
-            pageNo: 1,
-            totalPage: 1,
-            totalCount: 10
+      loadData: parameter => {
+        const requestParameters = Object.assign({}, parameter, this.queryParam)
+        return this.$http.post('/user/list', requestParameters)
+          .then(res => {
+            return res
           })
-        }).then(res => {
-          return res
-        })
-      },
-
-      scheduleColumns: [
-        {
-          title: '时间',
-          dataIndex: 'time',
-          key: 'time'
-        },
-        {
-          title: '当前进度',
-          dataIndex: 'rate',
-          key: 'rate'
-        },
-        {
-          title: '状态',
-          dataIndex: 'status',
-          key: 'status',
-          scopedSlots: { customRender: 'status' }
-        },
-        {
-          title: '操作员ID',
-          dataIndex: 'operator',
-          key: 'operator'
-        },
-        {
-          title: '耗时',
-          dataIndex: 'cost',
-          key: 'cost'
-        }
-      ],
-      loadScheduleData: () => {
-        return new Promise(resolve => {
-          resolve({
-            data: [
-              {
-                key: '1',
-                time: '2017-10-01 14:10',
-                rate: '联系客户',
-                status: 'processing',
-                operator: '取货员 ID1234',
-                cost: '5mins'
-              },
-              {
-                key: '2',
-                time: '2017-10-01 14:05',
-                rate: '取货员出发',
-                status: 'success',
-                operator: '取货员 ID1234',
-                cost: '1h'
-              },
-              {
-                key: '3',
-                time: '2017-10-01 13:05',
-                rate: '取货员接单',
-                status: 'success',
-                operator: '取货员 ID1234',
-                cost: '5mins'
-              },
-              {
-                key: '4',
-                time: '2017-10-01 13:00',
-                rate: '申请审批通过',
-                status: 'success',
-                operator: '系统',
-                cost: '1h'
-              },
-              {
-                key: '5',
-                time: '2017-10-01 12:00',
-                rate: '发起退货申请',
-                status: 'success',
-                operator: '用户',
-                cost: '5mins'
-              }
-            ],
-            pageSize: 10,
-            pageNo: 1,
-            totalPage: 1,
-            totalCount: 10
-          })
-        }).then(res => {
-          return res
-        })
       }
+    }
+  },
+  methods: {
+     onChange (checkedList) {
+      this.indeterminate = !!checkedList.length && checkedList.length < this.options.length
+      this.checkAll = checkedList.length === this.options.length
+    },
+    onCheckAllChange (e) {
+      this.form.pers = e.target.checked ? [1000, 2001, 2002, 3001, 3002, 4001] : []
+    },
+    handleEdit (row) {
+       if (this.$refs.ruleForm) {
+        this.$refs.ruleForm.resetFields()
+      }
+      this.isEdit = true
+    },
+    handleInfo (row) {
+       if (this.$refs.ruleForm) {
+        this.$refs.ruleForm.resetFields()
+      }
+      this.form.pers = []
+      this.checkAll = false
+      this.footer = null
+      this.isSave = false
+      this.isShowPwd = false
+      this.title = '查看用户：' + row.userAccount
+      this.visible = true
+      this.$http.get(`/user/info/${row.userId}`).then(res => {
+       if (res.status) {
+         var model = Object.assign({}, res.data) || {}
+         model.pers = res.pers || []
+         this.form = model
+       } else {
+         this.$message.error(res.msg, 3)
+       }
+     })
+    },
+    handleDelete (row) {
+
+    },
+    handleAdd () {
+      if (this.$refs.ruleForm) {
+        this.$refs.ruleForm.resetFields()
+      }
+      this.isSave = true
+      this.isShowPwd = true
+      this.checkAll = true
+      this.form.userAccountPwd = 'qwer123'
+      this.form.pers = [1000, 2001, 2002, 3001, 3002, 4001]
+      this.title = '新增用户'
+      this.visible = true
+    },
+    handleOk () {
+      this.$refs.ruleForm.validate(valid => {
+        if (valid) {
+          var model = Object.assign({}, this.form)
+          if (!this.isEdit) {
+            model.userAccountPwd = md5(model.userAccountPwd)
+          }
+          this.confirmLoading = true
+          this.$http.post('/user/save', model).then(res => {
+            this.confirmLoading = false
+            if (res.status) {
+              this.visible = false
+              this.$message.success(res.msg, 3)
+            } else {
+              this.$message.error(res.msg, 3)
+            }
+          })
+        } else {
+          return false
+        }
+      })
     }
   },
   filters: {
@@ -232,19 +306,30 @@ export default {
     }
   },
   computed: {
-    title () {
-      return this.$route.meta.title
-    }
   }
 
 }
 </script>
 
 <style lang="less" scoped>
-  .title {
-    color: rgba(0,0,0,.85);
-    font-size: 16px;
-    font-weight: 500;
-    margin-bottom: 16px;
+.ant-modal-root{
+  /deep/ .ant-form-item-label  {
+     width: 80px;
   }
+  .ant-row{
+    .ant-form-item{
+      height: 60px;
+      margin-bottom: 0px;
+      textarea{
+        width: 490px;
+        height: 60px;
+      }
+    }
+    .checkbox_all{
+      margin-right: 8px;
+    }
+  }
+
+}
+
 </style>
