@@ -11,20 +11,20 @@ namespace SmartCityWebApi.Domain
         public long OrderId { get; set; }
 
         [Column(TypeName = "varchar(50)")]
-        public string OrderNo { get; set; } = string.Empty;
+        public string OrderNo { get; set; } = default!;
 
 
         [Column(TypeName = "varchar(50)")]
-        public string PaymentNo { get; set; } = string.Empty;
+        public string PaymentNo { get; set; } = default!;
 
         [Column(TypeName = "varchar(200)")]
-        public string OpenId { get; set; } = string.Empty;
+        public string OpenId { get; set; } = default!;
 
         [Column(TypeName = "varchar(20)")]
-        public string ReservationUserName { get; set; } = string.Empty;
+        public string ReservationUserName { get; set; } = default!;
 
         [Column(TypeName = "varchar(20)")]
-        public string ReservationUserPhone { get; set; } = string.Empty;
+        public string ReservationUserPhone { get; set; } = default!;
 
         public long ReservationId { get; set; }
 
@@ -36,7 +36,7 @@ namespace SmartCityWebApi.Domain
         public int SpaceType { get; set; }
 
         [Column(TypeName = "varchar(50)")]
-        public string SpaceName { get; set; } = string.Empty;
+        public string SpaceName { get; set; } = default!;
 
         [Column(TypeName = "timestamp")]
         public DateTime StartTime { get; set; }
@@ -59,9 +59,9 @@ namespace SmartCityWebApi.Domain
         public DateTime RefundTime { get; set; }
 
         [Column(TypeName = "varchar(500)")]
-        public string RefundRemark { get; set; } = string.Empty;
+        public string RefundRemark { get; set; } = default!;
 
         [Column(TypeName = "varchar(100)")]
-        public string RefundOptUser { get; set; } = string.Empty;
+        public string RefundOptUser { get; set; } = default!;
     }
 }

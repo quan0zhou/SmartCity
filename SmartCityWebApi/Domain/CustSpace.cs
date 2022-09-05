@@ -11,21 +11,21 @@ namespace SmartCityWebApi.Domain
         public long SpaceId { get; set; }
 
         [Column(TypeName = "varchar(50)")]
-        public string SpaceName { get; set; } = string.Empty;
+        public string SpaceName { get; set; } = default!;
 
         [Column(TypeName = "varchar(200)")]
-        public string SpaceAddress { get; set; } = string.Empty;
+        public string SpaceAddress { get; set; } = default!;
 
         [Column(TypeName = "varchar(20)")]
-        public string ContactName { get; set; } = string.Empty;
+        public string ContactName { get; set; } = default!;
 
 
         [Column(TypeName = "varchar(20)")]
-        public string ContactPhone { get; set; } = string.Empty;
+        public string ContactPhone { get; set; } = default!;
 
 
         [Column(TypeName = "varchar(500)")]
-        public string Remark { get; set; } = string.Empty;
+        public string Remark { get; set; } = default!;
 
         /// <summary>
         /// 场地类型【1:网球场 2：排球场 3：篮球场 4：羽毛球场】

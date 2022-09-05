@@ -12,7 +12,7 @@ namespace SmartCityWebApi.Domain.IRepository
 
         ValueTask<User?> Login(string account, string pwd);
 
-        ValueTask<int[]> GetUserPermission(long userId);
+        ValueTask<List<int>> GetUserPermission(long userId);
 
         ValueTask<bool> ExistsUser(long userId, string pwd);
 
@@ -27,5 +27,9 @@ namespace SmartCityWebApi.Domain.IRepository
         ValueTask<dynamic?> Info(long userId);
 
         ValueTask<int[]> GetUserPers(long userId);
+
+        ValueTask<(bool, string)> Delete(long userId);
+
+        ValueTask<(bool, string)> ResetPwd(long userId, string pwd, long updateUser);
     }
 }

@@ -19,7 +19,7 @@ namespace SmartCityWebApi.Domain
         public int SpaceType { get; set; }
 
         [Column(TypeName = "varchar(50)")]
-        public string SpaceName { get; set; } = string.Empty;
+        public string SpaceName { get; set; } = default!;
 
         [Column(TypeName = "timestamp")]
         public DateTime StartTime { get; set; }

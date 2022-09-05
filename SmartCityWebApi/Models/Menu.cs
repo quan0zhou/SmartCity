@@ -86,7 +86,7 @@ namespace SmartCityWebApi.Models
              },  
              new Menu (new Meta
              {
-               Title="场库管理"
+               Title="场地管理"
 
              })
              {

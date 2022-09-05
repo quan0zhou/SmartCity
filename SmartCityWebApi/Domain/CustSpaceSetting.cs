@@ -12,13 +12,13 @@ namespace SmartCityWebApi.Domain
 
 
         [Column(TypeName = "varchar(20)")]
-        public string ReservationTitle { get; set; } = string.Empty;
+        public string ReservationTitle { get; set; } = default!;
 
-        [Column(TypeName = "timestamp")]
-        public DateTime StartTime { get; set; }
+        [Column(TypeName = "time")]
+        public TimeOnly StartTime { get; set; }
 
-        [Column(TypeName = "timestamp")]
-        public DateTime EndTime { get; set; }
+        [Column(TypeName = "time")]
+        public TimeOnly EndTime { get; set; }
 
         public float TimePeriod { get; set; }
 
@@ -37,25 +37,22 @@ namespace SmartCityWebApi.Domain
         /// </summary>
         public float DirectRefundPeriod { get; set; }
 
-        /// <summary>
-        /// 距离预订时间多长后，不可退款
-        /// </summary>
-        public float NoRefundPeriod { get; set; }
+
 
         [Column(TypeName = "varchar(200)")]
-        public string AppID { get; set; } = string.Empty;
+        public string AppID { get; set; } = default!;
 
         [Column(TypeName = "varchar(200)")]
-        public string MchID { get; set; } = string.Empty;
+        public string MchID { get; set; } = default!;
 
         [Column(TypeName = "varchar(200)")]
-        public string SubMchID { get; set; } = string.Empty;
+        public string SubMchID { get; set; } = default!;
 
         [Column(TypeName = "varchar(200)")]
-        public string AppKey { get; set; } = string.Empty;
+        public string AppKey { get; set; } = default!;
 
         [Column(TypeName = "varchar(200)")]
-        public string AppSecret { get; set; } = string.Empty;
+        public string AppSecret { get; set; } = default!;
 
         public long CreateUser { get; set; }
 

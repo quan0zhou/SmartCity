@@ -18,9 +18,9 @@ namespace SmartCityWebApi.Infrastructure.Repository
             _idGenerator = idGenerator;
         }
 
-        public async ValueTask<int[]> GetUserPermission(long userId)
+        public async ValueTask<List<int>> GetUserPermission(long userId)
         {
-            return await _smartCityContext.UserPermissions.AsNoTracking().Where(r => r.UserId.Equals(userId)).Select(r => r.PageId).ToArrayAsync();
+            return await _smartCityContext.UserPermissions.AsNoTracking().Where(r => r.UserId.Equals(userId)).Select(r => r.PageId).ToListAsync();
         }
 
         public async ValueTask<bool> InitData()
@@ -92,7 +92,7 @@ namespace SmartCityWebApi.Infrastructure.Repository
             var query = _smartCityContext.Users.Where(r => r.UserAccount.Equals(userAccount));
             if (userId.HasValue)
             {
-                return await query.AnyAsync(r => r.UserId.Equals(userId.Value));
+                return await query.Where(r => r.UserId!=userId.Value).AnyAsync();
             }
             else
             {
@@ -115,7 +115,7 @@ namespace SmartCityWebApi.Infrastructure.Repository
                 model.UserName = user.UserName;
                 model.ContactPhone = user.ContactPhone;
                 model.Remark = user.Remark;
-                await _smartCityContext.Database.ExecuteSqlRawAsync($"DELETE FROM \"user\" WHERE \"UserId\"={user.UserId}");
+                await _smartCityContext.Database.ExecuteSqlRawAsync($"DELETE FROM \"userPermission\" WHERE \"UserId\"={user.UserId}");
                 foreach (var item in pers)
                 {
                     _smartCityContext.UserPermissions.Add(new UserPermission
@@ -133,7 +133,7 @@ namespace SmartCityWebApi.Infrastructure.Repository
             {
                 user.UserId = _idGenerator.CreateId();
                 _smartCityContext.Users.Add(user);
-                await _smartCityContext.Database.ExecuteSqlRawAsync($"DELETE FROM \"user\" WHERE \"UserId\"={user.UserId}");
+                await _smartCityContext.Database.ExecuteSqlRawAsync($"DELETE FROM \"userPermission\" WHERE \"UserId\"={user.UserId}");
                 foreach (var item in pers)
                 {
                     _smartCityContext.UserPermissions.Add(new UserPermission
@@ -157,6 +157,7 @@ namespace SmartCityWebApi.Infrastructure.Repository
             {
                 UserId = r.UserId.ToString(),
                 r.UserAccount,
+                r.IsAdmin,
                 r.ContactPhone,
                 r.UserName,
                 r.Remark,
@@ -167,6 +168,34 @@ namespace SmartCityWebApi.Infrastructure.Repository
         public async ValueTask<int[]> GetUserPers(long userId)
         {
             return await _smartCityContext.UserPermissions.Where(r => r.UserId.Equals(userId)).Select(r => r.PageId).ToArrayAsync();
+        }
+
+        public async ValueTask<(bool, string)> Delete(long userId) 
+        {
+            var model = await _smartCityContext.Users.FirstOrDefaultAsync(r => r.UserId.Equals(userId));
+            if (model == null)
+            {
+                return (false, "该用户不存在");
+            }
+            _smartCityContext.Users.Remove(model);
+            await _smartCityContext.Database.ExecuteSqlRawAsync($"DELETE FROM \"userPermission\" WHERE \"UserId\"={userId}");
+            var result = await _smartCityContext.SaveChangesAsync() > 0;
+            return (result, result ? "删除成功" : "删除失败");
+
+        }
+
+        public async ValueTask<(bool, string)> ResetPwd(long userId, string pwd,long updateUser) 
+        {
+            var model = await _smartCityContext.Users.FirstOrDefaultAsync(r => r.UserId.Equals(userId));
+            if (model == null)
+            {
+                return (false, "该用户不存在");
+            }
+            model.UpdateUser = updateUser;
+            model.UpdateTime = DateTime.Now;
+            model.UserAccountPwd = pwd;
+            var result = await _smartCityContext.SaveChangesAsync() > 0;
+            return (result, result ? "重置成功" : "重置失败");
         }
     }
 }

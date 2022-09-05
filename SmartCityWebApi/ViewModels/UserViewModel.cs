@@ -11,7 +11,7 @@ namespace SmartCityWebApi.ViewModels
 
         public string UserAccount { get; set; } = default!;
 
-        public string UserAccountPwd { get; set; } = default!;
+        public string? UserAccountPwd { get; set; }
 
         public string ContactPhone { get; set; } = default!;
 

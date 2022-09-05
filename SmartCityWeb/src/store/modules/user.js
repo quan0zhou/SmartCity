@@ -81,6 +81,7 @@ const user = {
         logout(state.token).then(() => {
           commit('SET_TOKEN', '')
           commit('SET_ROLES', [])
+          commit('SET_INFO', {})
           storage.remove(ACCESS_TOKEN)
           resolve()
         }).catch((err) => {

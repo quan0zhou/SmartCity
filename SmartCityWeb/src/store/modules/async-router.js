@@ -13,10 +13,9 @@ const permission = {
       state.addRouters = routers
       state.routers = constantRouterMap.concat(routers)
     }
-  }
-  // ,
+  // },
   // actions: {
-  //   GenerateRoutes({ commit }, data) {
+  //   GenerateRoutes ({ commit }, data) {
   //     return new Promise(resolve => {
   //       const { token } = data
   //       generatorDynamicRouter(token).then(routers => {
@@ -25,7 +24,7 @@ const permission = {
   //       })
   //     })
   //   }
-  // }
+   }
 }
 
 export default permission

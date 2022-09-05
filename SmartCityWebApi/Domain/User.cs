@@ -12,19 +12,19 @@ namespace SmartCityWebApi.Domain
 
 
         [Column(TypeName = "varchar(50)")]
-        public string UserName { get; set; } = string.Empty;
+        public string UserName { get; set; } = default!;
 
         [Column(TypeName = "varchar(20)")]
-        public string UserAccount { get; set; } = string.Empty;
+        public string UserAccount { get; set; } = default!;
 
         [Column(TypeName = "varchar(500)")]
-        public string UserAccountPwd { get; set; } = string.Empty;
+        public string UserAccountPwd { get; set; } = default!;
 
         [Column(TypeName = "varchar(20)")]
-        public string ContactPhone { get; set; } = string.Empty;
+        public string ContactPhone { get; set; } = default!;
 
         [Column(TypeName = "varchar(500)")]
-        public string Remark { get; set; } = string.Empty;
+        public string Remark { get; set; } = default!;
 
         public bool IsAdmin { get; set; }
 

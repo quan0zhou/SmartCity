@@ -96,15 +96,12 @@ namespace SmartCityWebApi.Migrations
                     b.Property<float>("DirectRefundPeriod")
                         .HasColumnType("real");
 
-                    b.Property<DateTime>("EndTime")
-                        .HasColumnType("timestamp");
+                    b.Property<TimeOnly>("EndTime")
+                        .HasColumnType("time");
 
                     b.Property<string>("MchID")
                         .IsRequired()
                         .HasColumnType("varchar(200)");
-
-                    b.Property<float>("NoRefundPeriod")
-                        .HasColumnType("real");
 
                     b.Property<string>("ReservationTitle")
                         .IsRequired()
@@ -113,8 +110,8 @@ namespace SmartCityWebApi.Migrations
                     b.Property<int>("SettableDays")
                         .HasColumnType("integer");
 
-                    b.Property<DateTime>("StartTime")
-                        .HasColumnType("timestamp");
+                    b.Property<TimeOnly>("StartTime")
+                        .HasColumnType("time");
 
                     b.Property<string>("SubMchID")
                         .IsRequired()

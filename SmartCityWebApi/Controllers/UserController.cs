@@ -30,12 +30,22 @@ namespace SmartCityWebApi.Controllers
         [HttpGet("Nav")]
         public async ValueTask<IActionResult> Nav()
         {
-            int[] pers = new int[] { };
+            List<Menu> menuList = Menu.MenuList;
             if (!this.CurrentUser.IsAdmin)
             {
-                pers = await _userRepository.GetUserPermission(this.CurrentUser.UserId);
+                var pers = await _userRepository.GetUserPermission(this.CurrentUser.UserId);
+                if (pers != null && pers.Count > 0)
+                {
+                    if (!pers.Any(r => r.Equals(1000))) 
+                    {
+                        pers.Add(1000);
+                    }
+                    var menus = menuList.Where(r => pers.Any(p => p.Equals(r.Id))).Select(r => r.ParentId);
+                    menuList = menuList.Where(r => pers.Any(p => p.Equals(r.Id))|| menus.Any(p=>p.Equals(r.ParentId))).ToList();
+                }
+
             }
-            return this.Ok(new { result = Menu.MenuList });
+            return this.Ok(new { result = menuList });
         }
 
         [HttpPatch("Pwd")]
@@ -83,7 +93,7 @@ namespace SmartCityWebApi.Controllers
             userPageView = userPageView ?? new UserPageViewModel();
             userPageView.Keyword = (userPageView.Keyword ?? "").Trim();
             userPageView.PageSize = userPageView.PageSize <= 10 ? 10 : userPageView.PageSize;
-            userPageView.PageNo = userPageView.PageNo <= 1 ? 1 : userPageView.PageSize;
+            userPageView.PageNo = userPageView.PageNo <= 1 ? 1 : userPageView.PageNo;
             var (list, count) = await _userRepository.UserPageList(userPageView.Keyword, userPageView.PageNo, userPageView.PageSize);
             return this.Ok(new { data = list, pageSize = userPageView.PageSize, pageNo = userPageView.PageNo, totalPage = count / userPageView.PageSize, totalCount = count });
         }
@@ -134,21 +144,36 @@ namespace SmartCityWebApi.Controllers
                 UpdateUser = currentUser.UserId,
                 UserAccount = user.UserAccount,
                 UserAccountPwd = user.UserAccountPwd
-            },user.Pers);
-            return this.Ok(new { status = result, msg  });
+            }, user.Pers);
+            return this.Ok(new { status = result, msg });
         }
 
-        [HttpGet ("Info/{userId:long}")]
-        public async ValueTask<IActionResult> Info(long userId) 
+        [HttpGet("Info/{userId:long}")]
+        public async ValueTask<IActionResult> Info(long userId)
         {
             var model = await _userRepository.Info(userId);
-            if (model==null)
+            if (model == null)
             {
                 return this.Ok(new { status = false, msg = "该用户不存在" });
             }
             var pers = await _userRepository.GetUserPers(userId);
             return this.Ok(new { status = true, data = model, pers });
         }
+
+        [HttpDelete("Delete/{userId:long}")]
+        public async ValueTask<IActionResult> Delete(long userId)
+        {
+            var (result, msg) = await _userRepository.Delete(userId);
+            return this.Ok(new { status = result, msg });
+        }
+
+        [HttpPatch("Reset/{userId:long}")]
+        public async ValueTask<IActionResult> ResetPwd(long userId)
+        {
+            var (result, msg) = await _userRepository.ResetPwd(userId, "qwer123".ToMd5().ToSha256Encrypt(), this.CurrentUser.UserId);
+            return this.Ok(new { status = result, msg });
+        }
+
 
     }
 }
