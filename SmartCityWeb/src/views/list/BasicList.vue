@@ -5,7 +5,6 @@
         ref="ruleForm"
         :model="form"
         :rules="rules"
-
         :label-col="labelCol"
         :wrapper-col="wrapperCol"
       >
@@ -13,10 +12,10 @@
           <a-input v-model="form.reservationTitle"/>
         </a-form-model-item>
         <a-form-model-item ref="startTime" label="开始时间" prop="startTime">
-          <a-time-picker v-model="form.startTime" :default-value="moment('05:00:00', 'HH:mm:ss')" />
+          <a-time-picker v-model="form.startTime" />
         </a-form-model-item>
         <a-form-model-item ref="endTime" label="结束时间" prop="endTime">
-          <a-time-picker v-model="form.endTime" :default-value="moment('23:00:00', 'HH:mm:ss')"/>
+          <a-time-picker v-model="form.endTime" />
         </a-form-model-item>
         <a-form-model-item ref="timePeriod" label="时间段（小时）" prop="timePeriod">
           <a-input-number v-model="form.timePeriod" :min="1" :max="24" />
@@ -46,7 +45,7 @@
           <a-input v-model="form.appSecret"/>
         </a-form-model-item>
         <a-form-model-item :wrapper-col="{ span: 14, offset: 4 }">
-          <a-button type="primary" @click="onSubmit">
+          <a-button type="primary" @click="onSubmit" :loading="confirmLoading">
             保存
           </a-button>
           <a-button style="margin-left: 10px;" @click="resetForm">
@@ -75,7 +74,7 @@ export default {
     return {
       labelCol: { span: 4 },
       wrapperCol: { span: 10 },
-      other: '',
+      confirmLoading: false,
       form: {
         reservationTitle: '',
         startTime: '',
@@ -94,69 +93,58 @@ export default {
         reservationTitle: [
           { required: true, message: '请输入预约标题', trigger: 'blur' }
         ],
-        startTime: [{ required: true, message: '请选择开始时间', trigger: 'change' }],
-        endTime: [{ required: true, message: '请选择结束时间', trigger: 'change' }],
-         timePeriod: [{ required: true, message: '请选择开始时间', trigger: 'blur' }],
-        resource: [
-          { required: true, message: 'Please select activity resource', trigger: 'change' }
-        ],
-        desc: [{ required: true, message: 'Please input activity form', trigger: 'blur' }]
+        startTime: [{ required: true, message: '请选择开始时间', trigger: 'blur' }],
+        endTime: [{ required: true, message: '请选择结束时间', trigger: 'blur' }],
+        timePeriod: [{ required: true, message: '请填写时间段（小时）', trigger: 'blur' }],
+        settableDays: [{ required: true, message: '请填写可设置天数', trigger: 'blur' }],
+        bookableDays: [{ required: true, message: '请填可预订天数', trigger: 'blur' }],
+        directRefundPeriod: [{ required: true, message: '请设置时间', trigger: 'blur' }],
+        appID: [{ required: true, message: '请填写公众号APPId', trigger: 'blur' }],
+        mchID: [{ required: true, message: '请填写商户号', trigger: 'blur' }],
+        subMchID: [{ required: true, message: '请填写子商户号', trigger: 'blur' }],
+        appKey: [{ required: true, message: '请填写appKey', trigger: 'blur' }],
+        appSecret: [{ required: true, message: '请填写appSecret', trigger: 'blur' }]
       }
     }
   },
   methods: {
     moment,
-    add () {
-      this.$dialog(TaskForm,
-        // component props
-        {
-          record: {},
-          on: {
-            ok () {
-              console.log('ok 回调')
-            },
-            cancel () {
-              console.log('cancel 回调')
-            },
-            close () {
-              console.log('modal close 回调')
+    onSubmit () {
+    this.$refs.ruleForm.validate(valid => {
+        if (valid) {
+          this.confirmLoading = true
+          var model = Object.assign({}, this.form)
+          model.startTime = this.form.startTime.format('HH:mm:ss')
+          model.endTime = this.form.endTime.format('HH:mm:ss')
+          this.$http.post('/custSpace/setting/save', model).then(res => {
+            this.confirmLoading = false
+            if (res.status) {
+              this.$message.success(res.msg, 3)
+            } else {
+              this.$message.error(res.msg, 3)
             }
-          }
-        },
-        // modal props
-        {
-          title: '新增',
-          width: 700,
-          centered: true,
-          maskClosable: false
-        })
+          })
+        } else {
+          return false
+        }
+      })
     },
-    edit (record) {
-      console.log('record', record)
-      this.$dialog(TaskForm,
-        // component props
-        {
-          record,
-          on: {
-            ok () {
-              console.log('ok 回调')
-            },
-            cancel () {
-              console.log('cancel 回调')
-            },
-            close () {
-              console.log('modal close 回调')
-            }
-          }
-        },
-        // modal props
-        {
-          title: '操作',
-          width: 700,
-          centered: true,
-          maskClosable: false
-        })
+    resetForm () {
+     this.$refs.ruleForm.resetFields()
     }
+  },
+   created () {
+     this.$http.get('/custSpace/setting/info').then(res => {
+      if (res) {
+        var form = res || {}
+        form.startTime = moment(form.startTime, 'HH:mm:ss')
+        form.endTime = moment(form.endTime, 'HH:mm:ss')
+        this.form = form
+      } else {
+        this.form.startTime = moment('05:00:00', 'HH:mm:ss')
+        this.form.endTime = moment('23:00:00', 'HH:mm:ss')
+      }
+     })
   }
 }
 </script>

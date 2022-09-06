@@ -126,8 +126,6 @@ namespace SmartCityWebApi.Infrastructure.Repository
 
                     });
                 }
-                var result = await _smartCityContext.SaveChangesAsync() > 0;
-                return (result, result ? "保存成功" : "保存失败");
             }
             else
             {
@@ -144,9 +142,9 @@ namespace SmartCityWebApi.Infrastructure.Repository
 
                     });
                 }
-                var result = await _smartCityContext.SaveChangesAsync() > 0;
-                return (result, result ? "保存成功" : "保存失败");
             }
+            var result = await _smartCityContext.SaveChangesAsync() > 0;
+            return (result, result ? "保存成功" : "保存失败");
 
         }
 
