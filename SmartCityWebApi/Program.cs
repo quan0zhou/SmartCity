@@ -64,6 +64,14 @@ builder.Services.AddAuthentication(option =>
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JwtToken:SecretKey"]))
     };
 });
+
+builder.Host.ConfigureLogging(logging =>
+{
+    logging.ClearProviders();
+    logging.SetMinimumLevel(LogLevel.Trace);
+})
+.UseNLog();  // NLog: Setup NLog for Dependency injection
+
 var app = builder.Build();
 var logger = NLogBuilder.ConfigureNLog("nlog.config").GetCurrentClassLogger();
 app.UseExceptionHandler(exceptionHandlerApp =>

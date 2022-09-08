@@ -38,7 +38,7 @@ namespace SmartCityWebApi.Infrastructure.Repository
             }).FirstOrDefaultAsync();
         }
 
-        public async ValueTask<(bool, string)> SaveCustSpaceSetting(CustSpaceSetting custSpaceSetting)
+        public async ValueTask<(bool, string)> CustSpaceSettingSave(CustSpaceSetting custSpaceSetting)
         {
 
             if (custSpaceSetting.CustId > 0)
@@ -72,6 +72,74 @@ namespace SmartCityWebApi.Infrastructure.Repository
             var result = await _smartCityContext.SaveChangesAsync() > 0;
             return (result, result ? "保存成功" : "保存失败");
 
+        }
+
+
+        public async ValueTask<(IEnumerable<dynamic>, int)> CustSpacePageList(string spaceName,string contactName,int? spaceType, int pageNo, int pageSize)
+        {
+            var query = _smartCityContext.CustSpaces.AsNoTracking();
+            if (!string.IsNullOrWhiteSpace(spaceName))
+            {
+                query = query.Where(r => r.SpaceName.Contains(spaceName));
+            }
+            if (!string.IsNullOrWhiteSpace(contactName))
+            {
+                query = query.Where(r => r.ContactName.Contains(contactName));
+            }
+            if (spaceType>0)
+            {
+                query = query.Where(r => r.SpaceType.Equals(spaceType.Value));
+            }
+            var count = await query.CountAsync();
+            var list = await query.OrderByDescending(r => r.UpdateTime).Skip(pageSize * (pageNo - 1)).Take(pageSize).Select(r => new
+            {
+                SpaceId = r.SpaceId.ToString(),
+                r.SpaceName,
+                r.SpaceAddress,
+                r.ContactPhone,
+                r.ContactName,
+                r.Remark,
+                r.SpaceType,
+                UpdateTime = r.UpdateTime.ToString("yyyy-MM-dd HH:mm:ss")
+
+            }).ToListAsync();
+            return (list, count);
+        }
+
+        public async ValueTask<(bool, string)> CustSpaceSave(CustSpace custSpace) 
+        {
+            if (custSpace.SpaceId > 0)
+            {
+                var model = await _smartCityContext.CustSpaces.Where(r => r.SpaceId.Equals(custSpace.SpaceId)).FirstOrDefaultAsync();
+                if (model == null)
+                {
+                    return (false, "该场地不存在");
+                }
+                if (await _smartCityContext.CustSpaces.AnyAsync(r=>r.SpaceName==custSpace.SpaceName&&r.SpaceType==custSpace.SpaceType&&r.SpaceId!=custSpace.SpaceId))
+                {
+                    return (false, "该场地名称已存在");
+                }
+                model.ContactName = custSpace.ContactName;
+                model.SpaceName = custSpace.SpaceName;
+                model.SpaceAddress = custSpace.SpaceAddress;
+                model.Remark = custSpace.Remark;
+                model.SpaceType = custSpace.SpaceType;
+                model.ContactPhone = custSpace.ContactPhone;
+                model.CreateUser = custSpace.CreateUser;
+                model.UpdateTime = custSpace.UpdateTime;
+        
+            }
+            else
+            {
+                if (await _smartCityContext.CustSpaces.AnyAsync(r => r.SpaceName == custSpace.SpaceName && r.SpaceType == custSpace.SpaceType))
+                {
+                    return (false, "该场地名称已存在");
+                }
+                custSpace.SpaceId = _idGenerator.CreateId();
+                _smartCityContext.CustSpaces.Add(custSpace);
+            }
+            var result = await _smartCityContext.SaveChangesAsync() > 0;
+            return (result, result ? "保存成功" : "保存失败");
         }
     }
 }

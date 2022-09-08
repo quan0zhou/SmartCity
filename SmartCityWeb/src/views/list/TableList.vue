@@ -1,61 +1,35 @@
 <template>
-  <page-header-wrapper>
+  <page-header-wrapper :breadcrumb="true" :title="false">
     <a-card :bordered="false">
       <div class="table-page-search-wrapper">
         <a-form layout="inline">
           <a-row :gutter="48">
-            <a-col :md="8" :sm="24">
-              <a-form-item label="规则编号">
-                <a-input v-model="queryParam.id" placeholder=""/>
+            <a-col :md="6" :sm="24">
+              <a-form-item label="场地名称">
+                <a-input v-model="queryParam.spaceName" placeholder="请填写场地名称"/>
               </a-form-item>
             </a-col>
-            <a-col :md="8" :sm="24">
-              <a-form-item label="使用状态">
-                <a-select v-model="queryParam.status" placeholder="请选择" default-value="0">
+            <a-col :md="6" :sm="24">
+              <a-form-item label="场地联系人">
+                <a-input v-model="queryParam.contactName" placeholder="请填写场地联系人"/>
+              </a-form-item>
+            </a-col>
+            <a-col :md="6" :sm="24">
+              <a-form-item label="场地类型">
+                <a-select v-model="queryParam.spaceType" placeholder="请选择场地类型" >
                   <a-select-option value="0">全部</a-select-option>
-                  <a-select-option value="1">关闭</a-select-option>
-                  <a-select-option value="2">运行中</a-select-option>
+                  <a-select-option value="1">网球场</a-select-option>
+                  <a-select-option value="2">篮球场</a-select-option>
+                  <a-select-option value="3">羽毛球场</a-select-option>
+                  <a-select-option value="4">排球场</a-select-option>
+                  <a-select-option value="5">乒乓球场</a-select-option>
                 </a-select>
               </a-form-item>
             </a-col>
-            <template v-if="advanced">
-              <a-col :md="8" :sm="24">
-                <a-form-item label="调用次数">
-                  <a-input-number v-model="queryParam.callNo" style="width: 100%"/>
-                </a-form-item>
-              </a-col>
-              <a-col :md="8" :sm="24">
-                <a-form-item label="更新日期">
-                  <a-date-picker v-model="queryParam.date" style="width: 100%" placeholder="请输入更新日期"/>
-                </a-form-item>
-              </a-col>
-              <a-col :md="8" :sm="24">
-                <a-form-item label="使用状态">
-                  <a-select v-model="queryParam.useStatus" placeholder="请选择" default-value="0">
-                    <a-select-option value="0">全部</a-select-option>
-                    <a-select-option value="1">关闭</a-select-option>
-                    <a-select-option value="2">运行中</a-select-option>
-                  </a-select>
-                </a-form-item>
-              </a-col>
-              <a-col :md="8" :sm="24">
-                <a-form-item label="使用状态">
-                  <a-select placeholder="请选择" default-value="0">
-                    <a-select-option value="0">全部</a-select-option>
-                    <a-select-option value="1">关闭</a-select-option>
-                    <a-select-option value="2">运行中</a-select-option>
-                  </a-select>
-                </a-form-item>
-              </a-col>
-            </template>
-            <a-col :md="!advanced && 8 || 24" :sm="24">
-              <span class="table-page-search-submitButtons" :style="advanced && { float: 'right', overflow: 'hidden' } || {} ">
+            <a-col :md="6" :sm="24">
+              <span class="table-page-search-submitButtons" >
                 <a-button type="primary" @click="$refs.table.refresh(true)">查询</a-button>
                 <a-button style="margin-left: 8px" @click="() => this.queryParam = {}">重置</a-button>
-                <a @click="toggleAdvanced" style="margin-left: 8px">
-                  {{ advanced ? '收起' : '展开' }}
-                  <a-icon :type="advanced ? 'up' : 'down'"/>
-                </a>
               </span>
             </a-col>
           </a-row>
@@ -63,17 +37,7 @@
       </div>
 
       <div class="table-operator">
-        <a-button type="primary" icon="plus" @click="handleAdd">新建</a-button>
-        <a-dropdown v-action:edit v-if="selectedRowKeys.length > 0">
-          <a-menu slot="overlay">
-            <a-menu-item key="1"><a-icon type="delete" />删除</a-menu-item>
-            <!-- lock | unlock -->
-            <a-menu-item key="2"><a-icon type="lock" />锁定</a-menu-item>
-          </a-menu>
-          <a-button style="margin-left: 8px">
-            批量操作 <a-icon type="down" />
-          </a-button>
-        </a-dropdown>
+        <a-button type="primary" icon="plus" @click="handleAdd">新增</a-button>
       </div>
 
       <s-table
@@ -82,18 +46,11 @@
         rowKey="key"
         :columns="columns"
         :data="loadData"
-        :alert="true"
-        :rowSelection="rowSelection"
         showPagination="auto"
       >
-        <span slot="serial" slot-scope="text, record, index">
-          {{ index + 1 }}
-        </span>
-        <span slot="status" slot-scope="text">
-          <a-badge :status="text | statusTypeFilter" :text="text | statusFilter" />
-        </span>
-        <span slot="description" slot-scope="text">
-          <ellipsis :length="4" tooltip>{{ text }}</ellipsis>
+
+        <span slot="spaceType" slot-scope="text">
+          {{ text|statusFilter }}
         </span>
 
         <span slot="action" slot-scope="text, record">
@@ -105,57 +62,128 @@
         </span>
       </s-table>
 
-      <create-form
-        ref="createModal"
+      <a-modal
+        :title="title"
+        :maskClosable="false"
+        :width="660"
         :visible="visible"
-        :loading="confirmLoading"
-        :model="mdl"
-        @cancel="handleCancel"
-        @ok="handleOk"
-      />
-      <step-by-step-modal ref="modal" @ok="handleOk"/>
+        @cancel="visible=false"
+      >
+        <template>
+          <a-form-model
+            ref="ruleForm"
+            :model="form"
+            :rules="rules"
+            layout="inline"
+            :label-col="labelCol"
+            :wrapper-col="wrapperCol"
+          >
+            <a-row>
+              <a-col :span="12">
+                <a-form-model-item ref="spaceName" label="场地名称" prop="spaceName">
+                  <a-input
+                    v-model="form.spaceName"
+                    placeholder="请输入场地名称"
+                  />
+                </a-form-model-item>
+              </a-col>
+              <a-col :span="12">
+                <a-form-model-item label="场地类型" prop="spaceType" >
+                  <a-select v-model="form.spaceType" placeholder="请选择场地类型" style="width:183px;" >
+                    <a-select-option value="1">网球场</a-select-option>
+                    <a-select-option value="2">篮球场</a-select-option>
+                    <a-select-option value="3">羽毛球场</a-select-option>
+                    <a-select-option value="4">排球场</a-select-option>
+                    <a-select-option value="5">乒乓球场</a-select-option>
+                  </a-select>
+                </a-form-model-item>
+              </a-col>
+            </a-row>
+            <a-row>
+              <a-col :span="12">
+                <a-form-model-item ref="contactName" label="场地联系人" prop="contactName">
+                  <a-input
+                    v-model="form.contactName"
+                    placeholder="请输入场地联系人"
+                  />
+                </a-form-model-item>
+              </a-col>
+              <a-col :span="12">
+                <a-form-model-item label="联系人电话" prop="contactPhone">
+                  <a-input
+                    v-model="form.contactPhone"
+                    placeholder="请输入联系人电话"/>
+                </a-form-model-item>
+              </a-col>
+            </a-row>
+            <a-row>
+              <a-col :span="24">
+                <a-form-model-item label="场地地址" prop="spaceAddress">
+                  <a-input
+                    style="width:489px"
+                    v-model="form.spaceAddress"
+                    placeholder="请输入场地地址"
+                  />
+                </a-form-model-item>
+              </a-col>
+            </a-row>
+            <a-row>
+              <a-col :span="24">
+                <a-form-model-item label="备注" prop="remark">
+                  <a-input v-model="form.remark" type="textarea" placeholder="请输入备注" />
+                </a-form-model-item>
+              </a-col>
+            </a-row>
+          </a-form-model>
+        </template>
+        <template slot="footer">
+          <a-button type="white" @click="visible=false">取消</a-button>
+          <a-button type="primary" @click="handleOk" :loading="confirmLoading" v-if="isSave">确定</a-button>
+        </template>
+      </a-modal>
     </a-card>
   </page-header-wrapper>
 </template>
 
 <script>
-import moment from 'moment'
-import { STable, Ellipsis } from '@/components'
-import { getRoleList, getServiceList } from '@/api/manage'
-
-import StepByStepModal from './modules/StepByStepModal'
-import CreateForm from './modules/CreateForm'
+import { STable } from '@/components'
 
 const columns = [
   {
-    title: '#',
-    scopedSlots: { customRender: 'serial' }
+    title: '最后操作时间',
+    dataIndex: 'updateTime',
+    key: 'updateTime'
   },
   {
-    title: '规则编号',
-    dataIndex: 'no'
+    title: '场地名称',
+    dataIndex: 'spaceName',
+    key: 'spaceName'
   },
   {
-    title: '描述',
-    dataIndex: 'description',
-    scopedSlots: { customRender: 'description' }
+    title: '场地类型',
+    dataIndex: 'spaceType',
+    scopedSlots: { customRender: 'spaceType' },
+    key: 'spaceType'
   },
   {
-    title: '服务调用次数',
-    dataIndex: 'callNo',
-    sorter: true,
-    needTotal: true,
-    customRender: (text) => text + ' 次'
+    title: '场地联系人',
+    dataIndex: 'contactName',
+    key: 'contactName'
   },
   {
-    title: '状态',
-    dataIndex: 'status',
-    scopedSlots: { customRender: 'status' }
+    title: '场地联系人',
+    dataIndex: 'contactPhone',
+    key: 'contactPhone'
   },
   {
-    title: '更新时间',
-    dataIndex: 'updatedAt',
-    sorter: true
+    title: '场地地址',
+    dataIndex: 'spaceAddress',
+    key: 'spaceAddress'
+  },
+  {
+    title: '备注',
+    dataIndex: 'remark',
+    key: 'remark'
   },
   {
     title: '操作',
@@ -165,154 +193,142 @@ const columns = [
   }
 ]
 
-const statusMap = {
-  0: {
-    status: 'default',
-    text: '关闭'
-  },
+const spaceTypeMap = {
   1: {
-    status: 'processing',
-    text: '运行中'
+    spaceType: '1',
+    text: '网球场'
   },
-  2: {
-    status: 'success',
-    text: '已上线'
+ 2: {
+    spaceType: '2',
+    text: '篮球场'
   },
   3: {
-    status: 'error',
-    text: '异常'
+    spaceType: '3',
+    text: '羽毛球场'
+  },
+  4: {
+    spaceType: '4',
+    text: '排球场'
+  },
+  5: {
+    spaceType: '5',
+    text: '乒乓球场'
   }
 }
 
 export default {
-  name: 'TableList',
   components: {
-    STable,
-    Ellipsis,
-    CreateForm,
-    StepByStepModal
+    STable
   },
   data () {
     this.columns = columns
     return {
-      // create model
+      labelCol: {},
+      wrapperCol: {},
+      form: {
+       spaceName: '',
+       spaceType: undefined,
+       contactName: '',
+       contactPhone: '',
+       spaceAddress: '',
+       remark: ''
+      },
+      rules: {
+        spaceName: [
+           { required: true, message: '请输入场地名称', trigger: 'blur' },
+           { max: 50, message: '最大字符50个', trigger: 'blur' }
+        ],
+        spaceType: [
+           { required: true, message: '请输入场地类型', trigger: 'change' }
+          ]
+      },
+      title: '',
+      isSave: false,
       visible: false,
       confirmLoading: false,
-      mdl: null,
-      // 高级搜索 展开/关闭
-      advanced: false,
       // 查询参数
       queryParam: {},
       // 加载数据方法 必须为 Promise 对象
       loadData: parameter => {
         const requestParameters = Object.assign({}, parameter, this.queryParam)
         console.log('loadData request parameters:', requestParameters)
-        return getServiceList(requestParameters)
+        return this.$http.post('/custSpace/list', requestParameters)
           .then(res => {
-            return res.result
+            return res
           })
-      },
-      selectedRowKeys: [],
-      selectedRows: []
+      }
     }
   },
   filters: {
     statusFilter (type) {
-      return statusMap[type].text
+      return spaceTypeMap[type].text
     },
     statusTypeFilter (type) {
-      return statusMap[type].status
+      return spaceTypeMap[type].spaceType
     }
   },
   created () {
-    getRoleList({ t: new Date() })
+
   },
   computed: {
-    rowSelection () {
-      return {
-        selectedRowKeys: this.selectedRowKeys,
-        onChange: this.onSelectChange
-      }
-    }
+
   },
   methods: {
     handleAdd () {
-      this.mdl = null
+      if (this.$refs.ruleForm) {
+        this.$refs.ruleForm.resetFields()
+      }
+      this.form = this.$options.data().form
+      this.isSave = true
+      this.title = '新增场地'
       this.visible = true
     },
     handleEdit (record) {
       this.visible = true
-      this.mdl = { ...record }
     },
     handleOk () {
-      const form = this.$refs.createModal.form
-      this.confirmLoading = true
-      form.validateFields((errors, values) => {
-        if (!errors) {
-          console.log('values', values)
-          if (values.id > 0) {
-            // 修改 e.g.
-            new Promise((resolve, reject) => {
-              setTimeout(() => {
-                resolve()
-              }, 1000)
-            }).then(res => {
+    this.$refs.ruleForm.validate(valid => {
+        if (valid) {
+          var model = Object.assign({}, this.form)
+          console.log(model)
+          this.confirmLoading = true
+          this.$http.post('/custSpace/save', model).then(res => {
+            this.confirmLoading = false
+            if (res.status) {
               this.visible = false
-              this.confirmLoading = false
-              // 重置表单数据
-              form.resetFields()
-              // 刷新表格
-              this.$refs.table.refresh()
-
-              this.$message.info('修改成功')
-            })
-          } else {
-            // 新增
-            new Promise((resolve, reject) => {
-              setTimeout(() => {
-                resolve()
-              }, 1000)
-            }).then(res => {
-              this.visible = false
-              this.confirmLoading = false
-              // 重置表单数据
-              form.resetFields()
-              // 刷新表格
-              this.$refs.table.refresh()
-
-              this.$message.info('新增成功')
-            })
-          }
+              this.$message.success(res.msg, 3)
+              this.$refs.table.refresh(true)
+            } else {
+              this.$message.error(res.msg, 3)
+            }
+          })
         } else {
-          this.confirmLoading = false
+          return false
         }
       })
-    },
-    handleCancel () {
-      this.visible = false
-
-      const form = this.$refs.createModal.form
-      form.resetFields() // 清理表单数据（可不做）
-    },
-    handleSub (record) {
-      if (record.status !== 0) {
-        this.$message.info(`${record.no} 订阅成功`)
-      } else {
-        this.$message.error(`${record.no} 订阅失败，规则已关闭`)
-      }
-    },
-    onSelectChange (selectedRowKeys, selectedRows) {
-      this.selectedRowKeys = selectedRowKeys
-      this.selectedRows = selectedRows
-    },
-    toggleAdvanced () {
-      this.advanced = !this.advanced
-    },
-    resetSearchForm () {
-      this.queryParam = {
-        date: moment(new Date())
-      }
     }
   }
 }
 </script>
+<style lang="less" scoped>
+.ant-modal-root{
+  /deep/ .ant-form-item-label  {
+     width: 80px;
+  }
+  .ant-row{
+    .ant-form-item{
+      height: 60px;
+      margin-bottom: 0px;
+      textarea{
+        width: 490px;
+        height: 60px;
+      }
+    }
+    .checkbox_all{
+      margin-right: 8px;
+    }
+  }
+
+}
+
+</style>

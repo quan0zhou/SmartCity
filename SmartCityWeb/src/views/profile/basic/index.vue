@@ -58,6 +58,7 @@
       :maskClosable="false"
       :width="660"
       :visible="visible"
+      @cancel="visible=false"
     >
       <template>
         <a-form-model
