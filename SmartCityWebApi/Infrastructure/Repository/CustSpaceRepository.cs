@@ -141,5 +141,33 @@ namespace SmartCityWebApi.Infrastructure.Repository
             var result = await _smartCityContext.SaveChangesAsync() > 0;
             return (result, result ? "保存成功" : "保存失败");
         }
+
+        public async ValueTask<dynamic?> Info(long spaceId)
+        {
+            return await _smartCityContext.CustSpaces.AsNoTracking().Where(r=>r.SpaceId.Equals(spaceId)).Select(r => new
+            {
+                SpaceId = r.SpaceId.ToString(),
+                r.SpaceName,
+                r.SpaceAddress,
+                r.ContactPhone,
+                r.ContactName,
+                r.Remark,
+                r.SpaceType,
+
+            }).FirstOrDefaultAsync();
+        }
+
+        public async ValueTask<(bool, string)> Delete(long spaceId)
+        {
+            var model = await _smartCityContext.CustSpaces.FirstOrDefaultAsync(r => r.SpaceId.Equals(spaceId));
+            if (model == null)
+            {
+                return (false, "该场地不存在");
+            }
+            _smartCityContext.CustSpaces.Remove(model);
+            var result = await _smartCityContext.SaveChangesAsync() > 0;
+            return (result, result ? "删除成功" : "删除失败");
+
+        }
     }
 }

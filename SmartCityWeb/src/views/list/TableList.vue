@@ -17,12 +17,12 @@
             <a-col :md="6" :sm="24">
               <a-form-item label="场地类型">
                 <a-select v-model="queryParam.spaceType" placeholder="请选择场地类型" >
-                  <a-select-option value="0">全部</a-select-option>
-                  <a-select-option value="1">网球场</a-select-option>
-                  <a-select-option value="2">篮球场</a-select-option>
-                  <a-select-option value="3">羽毛球场</a-select-option>
-                  <a-select-option value="4">排球场</a-select-option>
-                  <a-select-option value="5">乒乓球场</a-select-option>
+                  <a-select-option :value="0">全部</a-select-option>
+                  <a-select-option :value="1">网球场</a-select-option>
+                  <a-select-option :value="2">篮球场</a-select-option>
+                  <a-select-option :value="3">羽毛球场</a-select-option>
+                  <a-select-option :value="4">排球场</a-select-option>
+                  <a-select-option :value="5">乒乓球场</a-select-option>
                 </a-select>
               </a-form-item>
             </a-col>
@@ -55,9 +55,11 @@
 
         <span slot="action" slot-scope="text, record">
           <template>
-            <a @click="handleEdit(record)">配置</a>
+            <a-button size="small" @click="handleInfo(record)">查看</a-button>
             <a-divider type="vertical" />
-            <a @click="handleSub(record)">订阅报警</a>
+            <a-button @click="handleEdit(record)" type="primary" size="small">编辑</a-button>
+            <a-divider type="vertical" />
+            <a-button @click="handleDelete(record)" type="danger" size="small">删除</a-button>
           </template>
         </span>
       </s-table>
@@ -90,11 +92,11 @@
               <a-col :span="12">
                 <a-form-model-item label="场地类型" prop="spaceType" >
                   <a-select v-model="form.spaceType" placeholder="请选择场地类型" style="width:183px;" >
-                    <a-select-option value="1">网球场</a-select-option>
-                    <a-select-option value="2">篮球场</a-select-option>
-                    <a-select-option value="3">羽毛球场</a-select-option>
-                    <a-select-option value="4">排球场</a-select-option>
-                    <a-select-option value="5">乒乓球场</a-select-option>
+                    <a-select-option :value="1">网球场</a-select-option>
+                    <a-select-option :value="2">篮球场</a-select-option>
+                    <a-select-option :value="3">羽毛球场</a-select-option>
+                    <a-select-option :value="4">排球场</a-select-option>
+                    <a-select-option :value="5">乒乓球场</a-select-option>
                   </a-select>
                 </a-form-model-item>
               </a-col>
@@ -188,30 +190,30 @@ const columns = [
   {
     title: '操作',
     dataIndex: 'action',
-    width: '150px',
+    width: '220px',
     scopedSlots: { customRender: 'action' }
   }
 ]
 
 const spaceTypeMap = {
   1: {
-    spaceType: '1',
+    spaceType: 1,
     text: '网球场'
   },
  2: {
-    spaceType: '2',
+    spaceType: 2,
     text: '篮球场'
   },
   3: {
-    spaceType: '3',
+    spaceType: 3,
     text: '羽毛球场'
   },
   4: {
-    spaceType: '4',
+    spaceType: 4,
     text: '排球场'
   },
   5: {
-    spaceType: '5',
+    spaceType: 5,
     text: '乒乓球场'
   }
 }
@@ -283,11 +285,59 @@ export default {
       this.title = '新增场地'
       this.visible = true
     },
-    handleEdit (record) {
+    handleEdit (row) {
+      if (this.$refs.ruleForm) {
+        this.$refs.ruleForm.resetFields()
+      }
+      this.isSave = true
+      this.title = '编辑用户：' + row.spaceName
       this.visible = true
+      this.$http.get(`/custSpace/info/${row.spaceId}`).then(res => {
+       if (res.status) {
+         var model = Object.assign({}, res.data) || {}
+         this.form = model
+       } else {
+         this.$message.error(res.msg, 3)
+       }
+     })
+    },
+   handleInfo (row) {
+    if (this.$refs.ruleForm) {
+        this.$refs.ruleForm.resetFields()
+      }
+      this.isSave = false
+      this.isShowPwd = false
+      this.title = '查看场地：' + row.spaceName
+      this.visible = true
+      this.$http.get(`/custSpace/info/${row.spaceId}`).then(res => {
+       if (res.status) {
+         var model = Object.assign({}, res.data) || {}
+         this.form = model
+       } else {
+         this.$message.error(res.msg, 3)
+       }
+     })
+   },
+   handleDelete (row) {
+      var $this = this
+      this.$confirm({
+        title: '确认删除该场地【' + row.spaceName + '】吗？',
+        okType: 'danger',
+        content: h => <div style="color:red;">记录会永久删除</div>,
+        onOk () {
+            $this.$http.delete(`/custSpace/delete/${row.spaceId}`).then(res => {
+              if (res.status) {
+                 $this.$message.success(res.msg, 3)
+                 $this.$refs.table.refresh(true)
+              } else {
+                 $this.$message.error(res.msg, 3)
+              }
+            })
+          }
+        })
     },
     handleOk () {
-    this.$refs.ruleForm.validate(valid => {
+     this.$refs.ruleForm.validate(valid => {
         if (valid) {
           var model = Object.assign({}, this.form)
           console.log(model)

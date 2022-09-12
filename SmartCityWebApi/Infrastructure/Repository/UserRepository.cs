@@ -1,10 +1,8 @@
 ﻿using IdGen;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.VisualBasic;
 using SmartCityWebApi.Domain;
 using SmartCityWebApi.Domain.IRepository;
 using SmartCityWebApi.Extensions;
-using System;
 
 namespace SmartCityWebApi.Infrastructure.Repository
 {
@@ -115,7 +113,7 @@ namespace SmartCityWebApi.Infrastructure.Repository
                 model.UserName = user.UserName;
                 model.ContactPhone = user.ContactPhone;
                 model.Remark = user.Remark;
-                await _smartCityContext.Database.ExecuteSqlRawAsync($"DELETE FROM \"userPermission\" WHERE \"UserId\"={user.UserId}");
+                await _smartCityContext.Database.ExecuteSqlInterpolatedAsync($"DELETE FROM \"userPermission\" WHERE \"UserId\"={user.UserId}");
                 foreach (var item in pers)
                 {
                     _smartCityContext.UserPermissions.Add(new UserPermission
@@ -131,7 +129,7 @@ namespace SmartCityWebApi.Infrastructure.Repository
             {
                 user.UserId = _idGenerator.CreateId();
                 _smartCityContext.Users.Add(user);
-                await _smartCityContext.Database.ExecuteSqlRawAsync($"DELETE FROM \"userPermission\" WHERE \"UserId\"={user.UserId}");
+                await _smartCityContext.Database.ExecuteSqlInterpolatedAsync($"DELETE FROM \"userPermission\" WHERE \"UserId\"={user.UserId}");
                 foreach (var item in pers)
                 {
                     _smartCityContext.UserPermissions.Add(new UserPermission
@@ -176,7 +174,7 @@ namespace SmartCityWebApi.Infrastructure.Repository
                 return (false, "该用户不存在");
             }
             _smartCityContext.Users.Remove(model);
-            await _smartCityContext.Database.ExecuteSqlRawAsync($"DELETE FROM \"userPermission\" WHERE \"UserId\"={userId}");
+            await _smartCityContext.Database.ExecuteSqlInterpolatedAsync($"DELETE FROM \"userPermission\" WHERE \"UserId\"={userId}");
             var result = await _smartCityContext.SaveChangesAsync() > 0;
             return (result, result ? "删除成功" : "删除失败");
 

@@ -60,7 +60,7 @@ namespace SmartCityWebApi.Controllers
         }
 
         [HttpPost("List")]
-        public async Task<IActionResult> CustSpaceList(CustSpacePageViewModel custSpacePageViewModel) 
+        public async ValueTask<IActionResult> CustSpaceList(CustSpacePageViewModel custSpacePageViewModel) 
         {
             custSpacePageViewModel = custSpacePageViewModel ?? new CustSpacePageViewModel();
             custSpacePageViewModel.SpaceName = (custSpacePageViewModel.SpaceName ?? "").Trim();
@@ -72,7 +72,7 @@ namespace SmartCityWebApi.Controllers
         }
 
         [HttpPost("Save")]
-        public async Task<IActionResult> CustSpaceSave(CustSpaceViewModel custSpaceViewModel) 
+        public async ValueTask<IActionResult> CustSpaceSave(CustSpaceViewModel custSpaceViewModel) 
         {
             custSpaceViewModel = custSpaceViewModel ?? new CustSpaceViewModel();
             custSpaceViewModel.SpaceName = (custSpaceViewModel.SpaceName ?? "").Trim();
@@ -105,6 +105,25 @@ namespace SmartCityWebApi.Controllers
 
             });
 
+            return this.Ok(new { status = result, msg });
+        }
+
+
+        [HttpGet("Info/{spaceId:long}")]
+        public async ValueTask<IActionResult> CustSpaceInfo(long spaceId) 
+        {
+            var model = await _custSpaceRepository.Info(spaceId);
+            if (model == null)
+            {
+                return this.Ok(new { status = false, msg = "该场地不存在" });
+            }
+            return this.Ok(new { status = true, data = model });
+        }
+
+        [HttpDelete("Delete/{spaceId:long}")]
+        public async ValueTask<IActionResult> CustSpaceDelete(long spaceId)
+        {
+            var (result, msg) = await _custSpaceRepository.Delete(spaceId);
             return this.Ok(new { status = result, msg });
         }
     }

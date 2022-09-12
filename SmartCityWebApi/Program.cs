@@ -36,6 +36,8 @@ builder.Services.AddDbContext<SmartCityContext>(
 builder.Services.AddSingleton<IdGenerator>(new IdGenerator(1));
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<ICustSpaceRepository, CustSpaceRepository>();
+builder.Services.AddScoped<IOrderRepository, OrderRepository>();
+builder.Services.AddScoped<IReservationRepository, ReservationRepository>();
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(
@@ -104,7 +106,6 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-;
 try
 {
     //初始化用户

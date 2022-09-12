@@ -8,5 +8,9 @@
         ValueTask<(IEnumerable<dynamic>, int)> CustSpacePageList(string spaceName, string contactName, int? spaceType, int pageNo, int pageSize);
 
         ValueTask<(bool, string)> CustSpaceSave(CustSpace custSpace);
+
+        ValueTask<dynamic?> Info(long spaceId);
+
+        ValueTask<(bool, string)> Delete(long spaceId);
     }
 }

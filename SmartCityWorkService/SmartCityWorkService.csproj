@@ -1,0 +1,26 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Worker">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>dotnet-SmartCityWorkService-E8FAB9BB-045D-4254-BF8F-2B3CB47F8C25</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="IdGen" Version="3.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="6.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" Version="6.0.0" />
+    <PackageReference Include="NLog.Web.AspNetCore" Version="5.1.4" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="6.0.6" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="install.bat">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="uninstall.bat">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+</Project>

@@ -12,7 +12,7 @@ using SmartCityWebApi.Infrastructure;
 namespace SmartCityWebApi.Migrations
 {
     [DbContext(typeof(SmartCityContext))]
-    [Migration("20220905154809_InitialCreate")]
+    [Migration("20220910031538_InitialCreate")]
     partial class InitialCreate
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -144,6 +144,9 @@ namespace SmartCityWebApi.Migrations
                     b.Property<DateTime>("EndTime")
                         .HasColumnType("timestamp");
 
+                    b.Property<decimal>("Money")
+                        .HasColumnType("numeric");
+
                     b.Property<string>("OpenId")
                         .IsRequired()
                         .HasColumnType("varchar(200)");
@@ -154,6 +157,9 @@ namespace SmartCityWebApi.Migrations
 
                     b.Property<int>("OrderStatus")
                         .HasColumnType("integer");
+
+                    b.Property<DateTime?>("PayTime")
+                        .HasColumnType("timestamp");
 
                     b.Property<string>("PaymentNo")
                         .IsRequired()
@@ -167,7 +173,7 @@ namespace SmartCityWebApi.Migrations
                         .IsRequired()
                         .HasColumnType("varchar(500)");
 
-                    b.Property<DateTime>("RefundTime")
+                    b.Property<DateTime?>("RefundTime")
                         .HasColumnType("timestamp");
 
                     b.Property<DateOnly>("ReservationDate")
@@ -212,6 +218,9 @@ namespace SmartCityWebApi.Migrations
 
                     b.Property<DateTime>("EndTime")
                         .HasColumnType("timestamp");
+
+                    b.Property<decimal>("Money")
+                        .HasColumnType("numeric");
 
                     b.Property<DateOnly>("ReservationDate")
                         .HasColumnType("date");

@@ -1,6 +1,6 @@
 <template>
   <!-- hidden PageHeaderWrapper title demo -->
-  <page-header-wrapper :title="false" :content="$t('form.basic-form.basic.description')">
+  <page-header-wrapper :title="false" >
     <a-card :body-style="{padding: '24px 32px'}" :bordered="false">
       <a-form @submit="handleSubmit" :form="form">
         <a-form-item
@@ -113,7 +113,6 @@
 
 <script>
 export default {
-  name: 'BaseForm',
   data () {
     return {
       form: this.$form.createForm(this)
@@ -129,6 +128,11 @@ export default {
         }
       })
     }
+  },
+  created () {
+      this.$http.get('/reservation/list').then(res => {
+        console.log(res)
+      })
   }
 }
 </script>
