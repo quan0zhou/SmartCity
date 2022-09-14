@@ -28,9 +28,14 @@ namespace SmartCityWebApi.Domain
         public DateTime EndTime { get; set; }
 
         /// <summary>
-        /// 【0：不可用 1：可用】
+        /// 【0：不可用 1：可用 】
         /// </summary>
         public int ReservationStatus { get; set; }
+
+        /// <summary>
+        /// 是否已预订
+        /// </summary>
+        public bool IsBooked { get; set; }
 
 
         public decimal Money { get; set; }

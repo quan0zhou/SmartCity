@@ -32,7 +32,10 @@ namespace SmartCityWebApi.Domain
         /// </summary>
         public int ReservationStatus { get; set; }
 
-
+        /// <summary>
+        /// 是否已预订
+        /// </summary>
+        public bool IsBooked { get; set; }
         public decimal Money { get; set; }
     }
 }

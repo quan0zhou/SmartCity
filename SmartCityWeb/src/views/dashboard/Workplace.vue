@@ -4,7 +4,7 @@
     <template>
       <a-row :gutter="24">
         <a-col :sm="24" :md="12" :xl="6" :style="{ marginBottom: '24px' }">
-          <chart-card :loading="loading" title="当日已预订金额" :total="dashboard.bookedMoney" class="first">
+          <chart-card :loading="loading" title="今日已预订金额" :total="dashboard.bookedMoney" class="first">
             <a-tooltip title="预订金额" slot="action">
               <!-- <a-icon type="info-circle-o" /> -->
             </a-tooltip>
@@ -12,7 +12,7 @@
           </chart-card>
         </a-col>
         <a-col :sm="24" :md="12" :xl="6" :style="{ marginBottom: '24px' }">
-          <chart-card :loading="loading" title="当日已预订笔数" :total="dashboard.bookedCount" class="second">
+          <chart-card :loading="loading" title="今日已预订笔数" :total="dashboard.bookedCount" class="second">
             <a-tooltip title="预订笔数" slot="action">
               <!-- <a-icon type="info-circle-o" /> -->
             </a-tooltip>
@@ -21,7 +21,7 @@
           </chart-card>
         </a-col>
         <a-col :sm="24" :md="12" :xl="6" :style="{ marginBottom: '24px' }">
-          <chart-card :loading="loading" title="当日已退款金额" :total="dashboard.refundedMoney" class="third">
+          <chart-card :loading="loading" title="今日已退款金额" :total="dashboard.refundedMoney" class="third">
             <a-tooltip title="退款金额" slot="action">
               <!-- <a-icon type="info-circle-o" /> -->
             </a-tooltip>
@@ -29,7 +29,7 @@
           </chart-card>
         </a-col>
         <a-col :sm="24" :md="12" :xl="6" :style="{ marginBottom: '24px' }">
-          <chart-card :loading="loading" title="当日已退款笔数" :total="dashboard.refundedCount" class="fourth">
+          <chart-card :loading="loading" title="今日已退款笔数" :total="dashboard.refundedCount" class="fourth">
             <a-tooltip title="退款笔数" slot="action">
               <!-- <a-icon type="info-circle-o" /> -->
             </a-tooltip>

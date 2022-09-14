@@ -23,7 +23,7 @@ namespace SmartCityWorkService
             while (!stoppingToken.IsCancellationRequested)
             {
                 await Task.Delay(DateTime.Parse(DateTime.Now.AddDays(1).Date.ToString("yyyy-MM-dd 01:00:00"))-DateTime.Now, stoppingToken);
-                _logger.LogInformation("开始设置约订记录 {time}", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
+                _logger.LogInformation("开始设置预订记录 {time}", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
                 using (var scope = _serviceProvider.CreateScope())
                 {
                     try
@@ -62,22 +62,28 @@ namespace SmartCityWorkService
                                         StartTime = startTime,
                                         EndTime = startTime.AddHours(setting.TimePeriod),
                                         ReservationDate = DateOnly.Parse(startTime.ToString("yyyy-MM-dd")),
-                                        ReservationStatus = 0,
+                                        ReservationStatus = 1,
+                                        IsBooked=false,
                                         Money = startTime.ToReservationMoney(),
                                         ReservationId = _idGenerator.CreateId()
                                     });
                                 }
                                 startTime = startTime.AddHours(setting.TimePeriod);
+                                if (startTime>= DateTime.Parse(startTime.ToString($"yyyy-MM-dd {setting.EndTime.ToString("HH:mm:ss")}")))
+                                {
+                                    startTime = DateTime.Parse(startTime.AddDays(1).ToString($"yyyy-MM-dd {setting.StartTime.ToString("HH:mm:ss")}"));
+                                }
+        
                             }
                             if (list.Count > 0)
                             {
                                 if (await reservationRepository.ReservationSave(list))
                                 {
-                                    _logger.LogInformation("设置约订记录保存成功");
+                                    _logger.LogInformation("设置预订记录保存成功");
                                 }
                                 else
                                 {
-                                    _logger.LogWarning("设置约订记录保存失败");
+                                    _logger.LogWarning("设置预订记录保存失败");
                                 }
                             }
 
@@ -88,7 +94,7 @@ namespace SmartCityWorkService
                     catch (Exception ex)
                     {
 
-                        _logger.LogError("设置约订记录错误", ex);
+                        _logger.LogError("设置预订记录错误", ex);
                     }
 
                 }

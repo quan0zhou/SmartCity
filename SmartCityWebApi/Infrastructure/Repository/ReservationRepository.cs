@@ -1,10 +1,11 @@
 ﻿using IdGen;
 using Microsoft.EntityFrameworkCore;
+using SmartCityWebApi.Domain;
 using SmartCityWebApi.Domain.IRepository;
 
 namespace SmartCityWebApi.Infrastructure.Repository
 {
-    public class ReservationRepository: IReservationRepository
+    public class ReservationRepository : IReservationRepository
     {
         private readonly SmartCityContext _smartCityContext;
         private readonly IdGenerator _idGenerator;
@@ -14,23 +15,28 @@ namespace SmartCityWebApi.Infrastructure.Repository
             _idGenerator = idGenerator;
         }
 
-        public async ValueTask<IEnumerable<dynamic>> GetReservationList(DateOnly date) 
+        public async ValueTask<IEnumerable<Reservation>> GetReservationList(DateOnly date, bool isEqual)
         {
-        
-             return await _smartCityContext.Reservations.AsNoTracking().Where(r=>r.ReservationDate>=date).OrderBy(r=>r.ReservationDate).ThenBy(r=>r.SpaceName).Select(r=>new 
-              {
-                 ReservationId= r.ReservationId.ToString(),
-                 r.SpaceName,
-                 r.ReservationStatus,
-                 ReservationDate=r.ReservationDate.ToString("yyyy-MM-dd"),
-                 r.Money,
-                 StartTime=r.StartTime.ToString("yyyy-MM-dd HH:mm:ss"),
-                 EndTime=r.EndTime.ToString("yyyy-MM-dd HH:mm:ss")
-              
-              }).ToListAsync();
-
-
+            var query = _smartCityContext.Reservations.AsNoTracking();
+            if (isEqual)
+            {
+                query = query.Where(r => r.ReservationDate == date);
+            }
+            else
+            {
+                query = query.Where(r => r.ReservationDate >= date);
+            }
+            return await query.OrderBy(r => r.ReservationDate).ThenBy(r => r.SpaceName).ToListAsync();
         }
 
+        public async ValueTask<bool> SetReservationMoney(long[] ids, decimal money)
+        {
+            return await _smartCityContext.Database.ExecuteSqlRawAsync($"UPDATE \"reservation\" SET \"Money\"={{0}},\"ReservationStatus\"=1 WHERE \"ReservationId\" IN ({(string.Join(',', ids))}) AND \"IsBooked\"=FALSE", money) > 0;
+        }
+
+        public async ValueTask<bool> SetReservationStatus(long[] ids, bool isUnreservable)
+        {
+            return await _smartCityContext.Database.ExecuteSqlRawAsync($"UPDATE \"reservation\" SET \"ReservationStatus\"={{0}} WHERE \"ReservationId\" IN ({(string.Join(',',ids))}) AND \"IsBooked\"=FALSE", (isUnreservable ? 0 : 1)) > 0;
+        }
     }
 }

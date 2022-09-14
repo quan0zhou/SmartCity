@@ -2,6 +2,11 @@
 {
     public interface IReservationRepository
     {
-        ValueTask<IEnumerable<dynamic>> GetReservationList(DateOnly date);
+        ValueTask<IEnumerable<Reservation>> GetReservationList(DateOnly date,bool isEqual);
+
+
+        ValueTask<bool> SetReservationStatus(long[] ids, bool isUnreservable);
+
+        ValueTask<bool> SetReservationMoney(long[] ids, decimal money);
     }
 }

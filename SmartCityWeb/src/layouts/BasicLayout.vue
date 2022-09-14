@@ -183,4 +183,9 @@ export default {
 
 <style lang="less">
 @import "./BasicLayout.less";
+.ant-layout {
+.ant-layout-footer{
+  padding: 0px;
+}
+}
 </style>

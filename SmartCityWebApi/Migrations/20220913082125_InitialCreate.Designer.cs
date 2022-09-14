@@ -12,7 +12,7 @@ using SmartCityWebApi.Infrastructure;
 namespace SmartCityWebApi.Migrations
 {
     [DbContext(typeof(SmartCityContext))]
-    [Migration("20220910031538_InitialCreate")]
+    [Migration("20220913082125_InitialCreate")]
     partial class InitialCreate
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -218,6 +218,9 @@ namespace SmartCityWebApi.Migrations
 
                     b.Property<DateTime>("EndTime")
                         .HasColumnType("timestamp");
+
+                    b.Property<bool>("IsBooked")
+                        .HasColumnType("boolean");
 
                     b.Property<decimal>("Money")
                         .HasColumnType("numeric");

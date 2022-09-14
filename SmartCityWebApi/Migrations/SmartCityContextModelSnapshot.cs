@@ -217,6 +217,9 @@ namespace SmartCityWebApi.Migrations
                     b.Property<DateTime>("EndTime")
                         .HasColumnType("timestamp");
 
+                    b.Property<bool>("IsBooked")
+                        .HasColumnType("boolean");
+
                     b.Property<decimal>("Money")
                         .HasColumnType("numeric");
 
