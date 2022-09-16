@@ -21,7 +21,7 @@ namespace SmartCityWebApi.Controllers
         public async ValueTask<IActionResult> TagList()
         {
             var list = await _reservationRepository.GetReservationList(DateOnly.Parse(DateTime.Now.ToString("yyyy-MM-dd")),false);
-            var query = list.GroupBy(r => r.ReservationDate);
+            var query = list.GroupBy(r => r.ReservationDate).OrderBy(r=>r.Key);
             var data = new List<ReservationTag>();
             foreach (var item in query)
             {
@@ -30,7 +30,7 @@ namespace SmartCityWebApi.Controllers
                     Date = item.Key.ToString("yyyy-MM-dd"),
                     Week = item.Key.ToWeekName()
                 };
-                var items = item.OrderBy(r => r.StartTime);
+                var items = item.OrderBy(r => r.StartTime).ThenBy(r=>r.SpaceName);
                 foreach (var reservation in items)
                 {
                     tag.Items.Add(new ReservationItem
@@ -59,7 +59,7 @@ namespace SmartCityWebApi.Controllers
         public async ValueTask<IActionResult> Tag(DateTime date)
         {
             var list = await _reservationRepository.GetReservationList(DateOnly.Parse(date.ToString("yyyy-MM-dd")),true);
-            var query = list.GroupBy(r => r.ReservationDate);
+            var query = list.GroupBy(r => r.ReservationDate).OrderBy(r => r.Key);
             ReservationTag? tag = null;
             foreach (var item in query)
             {
@@ -68,7 +68,7 @@ namespace SmartCityWebApi.Controllers
                     Date = item.Key.ToString("yyyy-MM-dd"),
                     Week = item.Key.ToWeekName()
                 };
-                var items = item.OrderBy(r => r.StartTime);
+                var items = item.OrderBy(r => r.StartTime).ThenBy(r => r.SpaceName);
                 foreach (var reservation in items)
                 {
                     tag.Items.Add(new ReservationItem

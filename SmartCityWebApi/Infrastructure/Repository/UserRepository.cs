@@ -63,6 +63,7 @@ namespace SmartCityWebApi.Infrastructure.Repository
         {
             return await _smartCityContext.Database.ExecuteSqlInterpolatedAsync($"UPDATE \"user\"  SET \"UserAccountPwd\" ={pwd},\"UpdateUser\"={userId},\"UpdateTime\"=now() WHERE \"UserId\"={userId}") > 0;
         }
+
         public async ValueTask<(IEnumerable<dynamic>, int)> UserPageList(string keyword, int pageNo, int pageSize)
         {
             var query = _smartCityContext.Users.AsNoTracking();

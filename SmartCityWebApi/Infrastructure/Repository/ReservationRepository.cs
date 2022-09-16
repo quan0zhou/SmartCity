@@ -26,7 +26,7 @@ namespace SmartCityWebApi.Infrastructure.Repository
             {
                 query = query.Where(r => r.ReservationDate >= date);
             }
-            return await query.OrderBy(r => r.ReservationDate).ThenBy(r => r.SpaceName).ToListAsync();
+            return await query.ToListAsync();
         }
 
         public async ValueTask<bool> SetReservationMoney(long[] ids, decimal money)

@@ -58,8 +58,8 @@ namespace SmartCityWebApi.Controllers
             }
         }
 
-        [HttpPost("LogOut")]
-        public IActionResult LogOut() 
+        [HttpPost("Logout")]
+        public IActionResult Logout() 
         {
             return Ok();
         }

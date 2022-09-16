@@ -17,11 +17,13 @@ namespace SmartCityWebApi.Controllers
         {
             _custSpaceRepository = custSpaceRepository;
         }
+
         [HttpGet("Setting/Info")]
         public async ValueTask<IActionResult> Setting()
         {
             return this.Ok(await _custSpaceRepository.GetCustSpaceSettingInfo());
         }
+
         [HttpPost("Setting/Save")]
         public async ValueTask<IActionResult> SettingSave(CustSpaceSettingViewModel custSpaceSetting)
         {
@@ -71,6 +73,15 @@ namespace SmartCityWebApi.Controllers
             return this.Ok(new { data = list, pageSize = custSpacePageViewModel.PageSize, pageNo = custSpacePageViewModel.PageNo, totalPage = count / custSpacePageViewModel.PageSize, totalCount = count });
         }
 
+        [HttpGet("List/{spaceType:int}")]
+        public async ValueTask<IActionResult> CustSpaceList(int spaceType) 
+        {
+
+            var list = await _custSpaceRepository.CustSpaceList(spaceType);
+            return this.Ok(list);
+           
+        }
+
         [HttpPost("Save")]
         public async ValueTask<IActionResult> CustSpaceSave(CustSpaceViewModel custSpaceViewModel) 
         {
@@ -107,7 +118,6 @@ namespace SmartCityWebApi.Controllers
 
             return this.Ok(new { status = result, msg });
         }
-
 
         [HttpGet("Info/{spaceId:long}")]
         public async ValueTask<IActionResult> CustSpaceInfo(long spaceId) 

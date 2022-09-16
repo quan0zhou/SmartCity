@@ -12,5 +12,7 @@
         ValueTask<dynamic?> Info(long spaceId);
 
         ValueTask<(bool, string)> Delete(long spaceId);
+
+        ValueTask<IEnumerable<dynamic>> CustSpaceList(int spaceType);
     }
 }

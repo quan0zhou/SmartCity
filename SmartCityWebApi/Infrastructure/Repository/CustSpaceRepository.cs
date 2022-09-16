@@ -17,6 +17,7 @@ namespace SmartCityWebApi.Infrastructure.Repository
             _smartCityContext = smartCityContext;
             _idGenerator = idGenerator;
         }
+
         public async ValueTask<dynamic?> GetCustSpaceSettingInfo()
         {
             return await _smartCityContext.CustSpaceSettings.AsNoTracking().Select(r => new
@@ -73,7 +74,6 @@ namespace SmartCityWebApi.Infrastructure.Repository
             return (result, result ? "保存成功" : "保存失败");
 
         }
-
 
         public async ValueTask<(IEnumerable<dynamic>, int)> CustSpacePageList(string spaceName,string contactName,int? spaceType, int pageNo, int pageSize)
         {
@@ -168,6 +168,18 @@ namespace SmartCityWebApi.Infrastructure.Repository
             var result = await _smartCityContext.SaveChangesAsync() > 0;
             return (result, result ? "删除成功" : "删除失败");
 
+        }
+
+        public async ValueTask<IEnumerable<dynamic>> CustSpaceList(int spaceType)
+        {
+            return await _smartCityContext.CustSpaces.AsNoTracking().Where(r => r.SpaceType.Equals(spaceType)).OrderBy(r => r.SpaceName).Select(r => new
+            {
+                SpaceId=r.SpaceId.ToString(),
+                r.SpaceName,
+                r.SpaceType,
+                r.SpaceAddress
+
+            }).ToListAsync();
         }
     }
 }

@@ -290,7 +290,7 @@ export default {
         this.$refs.ruleForm.resetFields()
       }
       this.isSave = true
-      this.title = '编辑用户：' + row.spaceName
+      this.title = '编辑场地：' + row.spaceName
       this.visible = true
       this.$http.get(`/custSpace/info/${row.spaceId}`).then(res => {
        if (res.status) {
