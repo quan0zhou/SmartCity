@@ -1,4 +1,5 @@
 using IdGen;
+using Magicodes.ExporterAndImporter.Excel;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.EntityFrameworkCore;
@@ -38,6 +39,7 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<ICustSpaceRepository, CustSpaceRepository>();
 builder.Services.AddScoped<IOrderRepository, OrderRepository>();
 builder.Services.AddScoped<IReservationRepository, ReservationRepository>();
+builder.Services.AddTransient<ExcelExporter>((provider) => new ExcelExporter());
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(

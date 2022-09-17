@@ -70,6 +70,9 @@
           </a-row>
         </a-form>
       </div>
+      <div class="table-operator">
+        <a-button type="primary" icon="download" @click="handleExport" :loading="exportLoading">导出</a-button>
+      </div>
       <s-table
         ref="table"
         size="default"
@@ -289,8 +292,8 @@
       </template>
       <template slot="footer">
         <a-button type="white" @click="visible=false">取消</a-button>
-        <a-button type="danger" @click="handleError" :loading="confirmLoading" >拒绝退款</a-button>
-        <a-button type="primary" @click="handleOk" :loading="confirmLoading" >确认退款</a-button>
+        <a-button type="danger" @click="handleError" :loading="confirmLoading1" >拒绝退款</a-button>
+        <a-button type="primary" @click="handleOk" :loading="confirmLoading2" >确认退款</a-button>
       </template>
     </a-modal>
   </page-header-wrapper>
@@ -435,6 +438,9 @@ export default {
       wrapperCol: {},
       labelCol1: { span: 4 },
       wrapperCol1: { span: 16 },
+      confirmLoading1: false,
+      confirmLoading2: false,
+      exportLoading: false,
       detailTitle: '',
       detailVisible: false,
       queryParam: {
@@ -451,7 +457,6 @@ export default {
            requestParameters.startDate = requestParameters.date[0].format('YYYY-MM-DD')
            requestParameters.endDate = requestParameters.date[1].format('YYYY-MM-DD')
         }
-        console.log('loadData request parameters:', requestParameters)
         return this.$http.post('/order/list', requestParameters)
           .then(res => {
             return res
@@ -470,6 +475,29 @@ export default {
     }
   },
   methods: {
+    handleExport () {
+       const requestParameters = Object.assign({}, this.queryParam)
+       if (requestParameters.date && requestParameters.date.length >= 2) {
+           requestParameters.startDate = requestParameters.date[0].format('YYYY-MM-DD')
+           requestParameters.endDate = requestParameters.date[1].format('YYYY-MM-DD')
+        }
+        this.exportLoading = true
+        this.$http({ url: '/order/downLoad', data: requestParameters, method: 'post', responseType: 'blob' }).then(res => {
+           this.exportLoading = false
+            this.downloadFile('订单记录.xlsx', res)
+          })
+    },
+    downloadFile (fileName, data) {
+      if (!data) { return }
+      var url = window.URL.createObjectURL(new Blob([data]))
+      var link = document.createElement('a')
+      link.style.display = 'none'
+      link.href = url
+      link.setAttribute('download', fileName)
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+	},
     changeType (val) {
       this.queryParam.spaceId = undefined
       this.spaceList = []
@@ -505,7 +533,8 @@ export default {
       this.detailVisible = true
     },
     handleRefund (row) {
-      this.form = {}
+      Object.assign(this.currentRow, row)
+      this.form = { orderId: row.orderId, remark: '' }
       this.title = '退款：' + row.spaceName + '【' + row.reservationDate + ' ' + row.reservationTime + '】'
       this.visible = true
     },
@@ -513,10 +542,34 @@ export default {
        this.detailVisible = false
     },
     handleOk () {
-
+      this.confirmLoading2 = true
+      this.$http.patch(`/order/refund`, this.form).then(res => {
+          this.confirmLoading2 = false
+         if (res.status) {
+            this.$message.success(res.msg, 3)
+            this.visible = false
+            this.$refs.table.refresh(true)
+         } else {
+            this.$message.error(res.msg, 3)
+         }
+       })
     },
     handleError () {
-
+        if ((this.form.remark || '').trim().length <= 0) {
+         this.$message.warn('拒绝退款，请填写退款备注', 3)
+         return
+        }
+        this.confirmLoading1 = true
+        this.$http.patch(`/order/refuseRefund`, this.form).then(res => {
+        this.confirmLoading1 = false
+         if (res.status) {
+            this.$message.success(res.msg, 3)
+            this.visible = false
+            this.$refs.table.refresh(true)
+         } else {
+            this.$message.error(res.msg, 3)
+         }
+       })
     }
   },
   created () {
