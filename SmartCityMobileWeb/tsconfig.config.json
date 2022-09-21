@@ -3,6 +3,7 @@
   "include": ["vite.config.*", "vitest.config.*", "cypress.config.*","postcss-px-to-viewport.*"],
   "compilerOptions": {
     "composite": true,
+    "isolatedModules": false,
     "types": ["node"]
   }
 }

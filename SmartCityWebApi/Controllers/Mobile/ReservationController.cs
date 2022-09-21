@@ -1,0 +1,97 @@
+﻿using Microsoft.AspNetCore.Mvc;
+using SmartCityWebApi.Domain.IRepository;
+using SmartCityWebApi.Extensions;
+using SmartCityWebApi.Models;
+
+namespace SmartCityWebApi.Controllers.Mobile
+{
+    [Route("api/mobile/[controller]")]
+    [ApiController]
+    public class ReservationController : ControllerBase
+    {
+        private readonly IReservationRepository _reservationRepository;
+        public ReservationController(IReservationRepository reservationRepository)
+        {
+            _reservationRepository = reservationRepository;
+        }
+        [HttpGet("TagList")]
+        public async ValueTask<MobileResModel> TagList()
+        {
+            MobileResModel mobileResModel = new MobileResModel();
+            var list = await _reservationRepository.GetReservationList(DateOnly.Parse(DateTime.Now.ToString("yyyy-MM-dd")), false);
+            var query = list.GroupBy(r => r.ReservationDate).OrderBy(r => r.Key);
+            var data = new List<ReservationTag>();
+            foreach (var item in query)
+            {
+                var tag = new ReservationTag
+                {
+                    Date = item.Key.ToString("yyyy-MM-dd"),
+                    Week = item.Key.ToWeekName()
+                };
+                var items = item.OrderBy(r => r.StartTime).ThenBy(r => r.SpaceName);
+                foreach (var reservation in items)
+                {
+                    tag.Items.Add(new ReservationItem
+                    {
+                        ReservationId = reservation.ReservationId.ToString(),
+                        StartTime = reservation.StartTime,
+                        EndTime = reservation.EndTime,
+                        Money = reservation.Money,
+                        ReservationDate = reservation.ReservationDate.ToString("yyyy-MM-dd"),
+                        ReservationStatus = reservation.ReservationStatus,
+                        IsBooked = reservation.IsBooked,
+                        SpaceId = reservation.SpaceId.ToString(),
+                        SpaceType = reservation.SpaceType,
+                        SpaceName = reservation.SpaceName
+
+                    });
+                }
+                tag.InitStatus(true);
+                data.Add(tag);
+            }
+            mobileResModel.Status = true;
+            mobileResModel.Data = data;
+            return mobileResModel;
+        }
+
+        [HttpGet("Tag/{date:datetime}")]
+        public async ValueTask<MobileResModel> Tag(DateTime date)
+        {
+            MobileResModel mobileResModel = new MobileResModel();
+            var list = await _reservationRepository.GetReservationList(DateOnly.Parse(date.ToString("yyyy-MM-dd")), true);
+            var query = list.GroupBy(r => r.ReservationDate).OrderBy(r => r.Key);
+            ReservationTag? tag = null;
+            foreach (var item in query)
+            {
+                tag = new ReservationTag
+                {
+                    Date = item.Key.ToString("yyyy-MM-dd"),
+                    Week = item.Key.ToWeekName()
+                };
+                var items = item.OrderBy(r => r.StartTime).ThenBy(r => r.SpaceName);
+                foreach (var reservation in items)
+                {
+                    tag.Items.Add(new ReservationItem
+                    {
+                        ReservationId = reservation.ReservationId.ToString(),
+                        StartTime = reservation.StartTime,
+                        EndTime = reservation.EndTime,
+                        Money = reservation.Money,
+                        ReservationDate = reservation.ReservationDate.ToString("yyyy-MM-dd"),
+                        ReservationStatus = reservation.ReservationStatus,
+                        IsBooked = reservation.IsBooked,
+                        SpaceId = reservation.SpaceId.ToString(),
+                        SpaceType = reservation.SpaceType,
+                        SpaceName = reservation.SpaceName
+
+                    });
+                }
+                tag.InitStatus(true);
+            }
+            mobileResModel.Status = true;
+            mobileResModel.Data = tag;
+            return mobileResModel;
+        }
+
+    }
+}

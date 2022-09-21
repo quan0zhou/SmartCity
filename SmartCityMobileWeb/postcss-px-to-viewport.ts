@@ -1,4 +1,3 @@
-
 declare module 'postcss-px-to-viewport' {
  
     type Options = {
@@ -17,6 +16,6 @@ declare module 'postcss-px-to-viewport' {
         landscapeUnit: string,
         landscapeWidth: number
     }
- 
     export default function(options: Partial<Options>):any
+   
 }
