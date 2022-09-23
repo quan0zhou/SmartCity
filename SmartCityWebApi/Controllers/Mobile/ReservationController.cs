@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using OfficeOpenXml.FormulaParsing.Excel.Functions.DateTime;
 using SmartCityWebApi.Domain.IRepository;
 using SmartCityWebApi.Extensions;
 using SmartCityWebApi.Models;
@@ -18,7 +19,18 @@ namespace SmartCityWebApi.Controllers.Mobile
         public async ValueTask<MobileResModel> TagList()
         {
             MobileResModel mobileResModel = new MobileResModel();
-            var list = await _reservationRepository.GetReservationList(DateOnly.Parse(DateTime.Now.ToString("yyyy-MM-dd")), false);
+            var now = DateTime.Now;
+            DateTime endDate;
+            if (now.ToWeekName() == "星期一" && now >= Convert.ToDateTime("09:00"))
+            {
+                endDate = now.AddDays(7);
+            }
+            else
+            {
+                int week = (int)now.DayOfWeek;
+                endDate = now.AddDays(7 - (week == 0 ? 7 : week) + 1);
+            }
+            var list = await _reservationRepository.GetReservationList(DateOnly.Parse(now.ToString("yyyy-MM-dd")), false, DateOnly.Parse(endDate.ToString("yyyy-MM-dd")));
             var query = list.GroupBy(r => r.ReservationDate).OrderBy(r => r.Key);
             var data = new List<ReservationTag>();
             foreach (var item in query)
@@ -38,7 +50,7 @@ namespace SmartCityWebApi.Controllers.Mobile
                         EndTime = reservation.EndTime,
                         Money = reservation.Money,
                         ReservationDate = reservation.ReservationDate.ToString("yyyy-MM-dd"),
-                        ReservationStatus = reservation.ReservationStatus,
+                        ReservationStatus = reservation.IsBooked ? 0 : (now >= reservation.StartTime ? 0 : reservation.ReservationStatus),
                         IsBooked = reservation.IsBooked,
                         SpaceId = reservation.SpaceId.ToString(),
                         SpaceType = reservation.SpaceType,
@@ -58,6 +70,7 @@ namespace SmartCityWebApi.Controllers.Mobile
         public async ValueTask<MobileResModel> Tag(DateTime date)
         {
             MobileResModel mobileResModel = new MobileResModel();
+            var now = DateTime.Now;
             var list = await _reservationRepository.GetReservationList(DateOnly.Parse(date.ToString("yyyy-MM-dd")), true);
             var query = list.GroupBy(r => r.ReservationDate).OrderBy(r => r.Key);
             ReservationTag? tag = null;
@@ -78,7 +91,7 @@ namespace SmartCityWebApi.Controllers.Mobile
                         EndTime = reservation.EndTime,
                         Money = reservation.Money,
                         ReservationDate = reservation.ReservationDate.ToString("yyyy-MM-dd"),
-                        ReservationStatus = reservation.ReservationStatus,
+                        ReservationStatus = reservation.IsBooked ? 0 : (now >= reservation.StartTime ? 0 : reservation.ReservationStatus),
                         IsBooked = reservation.IsBooked,
                         SpaceId = reservation.SpaceId.ToString(),
                         SpaceType = reservation.SpaceType,

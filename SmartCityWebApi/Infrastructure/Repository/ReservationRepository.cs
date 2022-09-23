@@ -15,7 +15,7 @@ namespace SmartCityWebApi.Infrastructure.Repository
             _idGenerator = idGenerator;
         }
 
-        public async ValueTask<IEnumerable<Reservation>> GetReservationList(DateOnly date, bool isEqual)
+        public async ValueTask<IEnumerable<Reservation>> GetReservationList(DateOnly date, bool isEqual, DateOnly? endDate = null)
         {
             var query = _smartCityContext.Reservations.AsNoTracking();
             if (isEqual)
@@ -25,6 +25,10 @@ namespace SmartCityWebApi.Infrastructure.Repository
             else
             {
                 query = query.Where(r => r.ReservationDate >= date);
+            }
+            if (endDate.HasValue)
+            {
+                query = query.Where(r => r.ReservationDate <= endDate.Value);
             }
             return await query.ToListAsync();
         }
