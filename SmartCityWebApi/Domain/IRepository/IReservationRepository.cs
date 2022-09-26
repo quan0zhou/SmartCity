@@ -1,4 +1,6 @@
-﻿namespace SmartCityWebApi.Domain.IRepository
+﻿using SmartCityWebApi.Models;
+
+namespace SmartCityWebApi.Domain.IRepository
 {
     public interface IReservationRepository
     {
@@ -7,5 +9,7 @@
         ValueTask<bool> SetReservationStatus(long[] ids, bool isUnreservable);
 
         ValueTask<bool> SetReservationMoney(long[] ids, decimal money);
+
+        ValueTask<ReservationItem?> ReservationInfo(long id);
     }
 }

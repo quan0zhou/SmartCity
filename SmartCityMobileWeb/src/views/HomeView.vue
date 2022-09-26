@@ -1,13 +1,12 @@
 <script setup lang="ts">
-import { ref, onMounted,computed } from 'vue'
+import { ref, onBeforeMount,computed } from 'vue'
 // import { getSpaceInfo } from '@/utils/http/api/custSpace/index'
 import { getTagList,getTag } from '@/utils/http/api/reservation/index'
 import { Toast } from 'vant';
 var activeName=ref<string>()
 let tagList=ref<any[]>()
-onMounted(async ()=>{
-  tagList.value = await getTagList();
-  console.log(tagList,activeName)
+  onBeforeMount(async ()=>{
+  tagList.value = (await getTagList()).data;
 })
 const checkItem=(item:any)=>{
    if(item.reservationStatus==0){
@@ -33,7 +32,7 @@ const changeTab=async (name:string)=>{
     forbidClick: false,
     loadingType: 'spinner',
     })
-   var newTag=await getTag(name)
+   var newTag=(await getTag(name)).data
    console.log(newTag)
    loadingToast.clear()
    var currentTag=ref(tagList.value?.find((tag:any)=>{
@@ -41,7 +40,7 @@ const changeTab=async (name:string)=>{
    }))
    Object.assign(currentTag.value,newTag)
 }
-const money=computed(()=>{
+const currentItem=computed(()=>{
   var currentTag=  tagList.value?.find((tag:any)=>{
       return tag.date==activeName.value
   })
@@ -50,10 +49,11 @@ const money=computed(()=>{
       return item.isChecked==true
      })
 
-     return item?.money||0
+     return  {money:item?.money||0,path:'/contact?id='+(item?.reservationId||'') }
   }
-  return 0
+  return {money:0,path:'/contact'}
 })
+
 </script>
 <template>
   <van-notice-bar
@@ -96,9 +96,9 @@ const money=computed(()=>{
   <van-col span="8"><van-tag type="success">当前选中</van-tag></van-col>
 </van-row>
 <van-action-bar>
-  <div class="van-action-bar-icon"><span class="icon_money">¥</span> <span class="money">{{money}}</span></div>
+  <div class="van-action-bar-icon"><span class="icon_money">¥</span> <span class="money">{{currentItem.money}}</span></div>
   <!-- <van-action-bar-icon icon="chat-o" text="客服" /> -->
-  <van-action-bar-button type="danger" text="立即预约"  />
+  <van-action-bar-button type="danger" text="立即预约" :disabled="currentItem.money<=0"  :to="currentItem.path" replace/>
 </van-action-bar>
 </template>
 <style lang="less" scoped>
@@ -150,7 +150,8 @@ const money=computed(()=>{
   }
   .tip_tag{
     text-align: center;
-    margin-top: 10px;
+    margin-top: 20px;
+    margin-bottom: 50px;
     .book{
       color: rgb(26, 24, 24);
       border: 1px solid #ccc;

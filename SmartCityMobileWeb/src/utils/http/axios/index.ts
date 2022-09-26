@@ -63,10 +63,11 @@ const request = <T = any>(config: AxiosRequestConfig): Promise<T> => {
   return new Promise((resolve) => {
     axiosInstance.request<any, AxiosResponse<IResponse>>(conf).then((res: AxiosResponse<IResponse>) => {
       // resolve(res as unknown as Promise<T>);
-      const {
-        data: { data },
-      } = res;
-      resolve(data as T);
+      // const {
+      //   data: { data },
+      // } = res;
+      console.log(res.data)
+      resolve(res.data as T);
     });
   });
 };

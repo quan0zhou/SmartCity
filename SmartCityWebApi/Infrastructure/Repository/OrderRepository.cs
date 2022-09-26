@@ -75,18 +75,18 @@ namespace SmartCityWebApi.Infrastructure.Repository
                 r.ReservationUserName,
                 r.ReservationUserPhone,
                 r.ReservationId,
-                ReservationDate=r.ReservationDate.ToString("yyyy-MM-dd"),
-                SpaceId=r.SpaceId.ToString(),
+                ReservationDate = r.ReservationDate.ToString("yyyy-MM-dd"),
+                SpaceId = r.SpaceId.ToString(),
                 r.SpaceType,
                 r.SpaceName,
                 r.OrderStatus,
-                ReservationTime=r.StartTime.ToString("HH:ss")+"~"+ r.EndTime.ToString("HH:ss"),
-                RefundTime =r.RefundTime.HasValue? r.RefundTime.Value.ToString("yyyy-MM-dd HH:mm:ss"):string.Empty,
+                ReservationTime = r.StartTime.ToString("HH:ss") + "~" + r.EndTime.ToString("HH:ss"),
+                RefundTime = r.RefundTime.HasValue ? r.RefundTime.Value.ToString("yyyy-MM-dd HH:mm:ss") : string.Empty,
                 PayTime = r.PayTime.HasValue ? r.PayTime.Value.ToString("yyyy-MM-dd HH:mm:ss") : string.Empty,
                 r.RefundRemark,
                 r.Money,
                 r.RefundOptUser,
-                CreateTime= r.CreateTime.ToString("yyyy-MM-dd HH:mm:ss"),
+                CreateTime = r.CreateTime.ToString("yyyy-MM-dd HH:mm:ss"),
                 UpdateTime = r.UpdateTime.ToString("yyyy-MM-dd HH:mm:ss")
 
             }).ToListAsync();
@@ -131,21 +131,21 @@ namespace SmartCityWebApi.Infrastructure.Repository
             var count = await query.CountAsync();
             var list = await query.OrderByDescending(r => r.UpdateTime).Select(r => new OrderModel
             {
-                OrderNo=r.OrderNo,
-                PaymentNo=r.PaymentNo,
-                OpenId=r.OpenId,
-                ReservationUserName=r.ReservationUserName,
-                ReservationUserPhone=r.ReservationUserPhone,
+                OrderNo = r.OrderNo,
+                PaymentNo = r.PaymentNo,
+                OpenId = r.OpenId,
+                ReservationUserName = r.ReservationUserName,
+                ReservationUserPhone = r.ReservationUserPhone,
                 ReservationDate = r.ReservationDate.ToString("yyyy-MM-dd"),
-                SpaceTypeName=r.SpaceType.ToSpaceTypeName(),
-                SpaceName=r.SpaceName,
-                OrderStatusName=r.OrderStatus.ToOrderStatusName(),
+                SpaceTypeName = r.SpaceType.ToSpaceTypeName(),
+                SpaceName = r.SpaceName,
+                OrderStatusName = r.OrderStatus.ToOrderStatusName(),
                 ReservationTime = r.StartTime.ToString("HH:ss") + "~" + r.EndTime.ToString("HH:ss"),
                 RefundTime = r.RefundTime.HasValue ? r.RefundTime.Value.ToString("yyyy-MM-dd HH:mm:ss") : string.Empty,
                 PayTime = r.PayTime.HasValue ? r.PayTime.Value.ToString("yyyy-MM-dd HH:mm:ss") : string.Empty,
-                RefundRemark=r.RefundRemark,
-                Money=r.Money,
-                RefundOptUser=r.RefundOptUser,
+                RefundRemark = r.RefundRemark,
+                Money = r.Money,
+                RefundOptUser = r.RefundOptUser,
                 CreateTime = r.CreateTime.ToString("yyyy-MM-dd HH:mm:ss"),
                 UpdateTime = r.UpdateTime.ToString("yyyy-MM-dd HH:mm:ss")
 
@@ -153,18 +153,51 @@ namespace SmartCityWebApi.Infrastructure.Repository
             return list;
         }
 
-        public async ValueTask<(bool, string)> RefuseRefund(long orderId, string remark,string updateUser)
+        public async ValueTask<IEnumerable<dynamic>> OrderList(long id)
+        {
+            var query = _smartCityContext.Orders.AsNoTracking();
+            if (id > 0)
+            {
+                query = query.Where(r => r.OrderId < id);
+
+            }
+            var list=await query.OrderByDescending(r => r.OrderId).Take(2).Select(r => new 
+            {
+                OrderId=r.OrderId.ToString(),
+                OrderNo = r.OrderNo,
+                PaymentNo = r.PaymentNo,
+                OpenId = r.OpenId,
+                ReservationUserName = r.ReservationUserName,
+                ReservationUserPhone = r.ReservationUserPhone,
+                ReservationDate = r.ReservationDate.ToString("yyyy-MM-dd"),
+                SpaceTypeName = r.SpaceType.ToSpaceTypeName(),
+                SpaceName = r.SpaceName,
+                OrderStatusName = r.OrderStatus.ToOrderStatusName(),
+                ReservationTime = r.StartTime.ToString("HH:ss") + "~" + r.EndTime.ToString("HH:ss"),
+                RefundTime = r.RefundTime.HasValue ? r.RefundTime.Value.ToString("yyyy-MM-dd HH:mm:ss") : string.Empty,
+                PayTime = r.PayTime.HasValue ? r.PayTime.Value.ToString("yyyy-MM-dd HH:mm:ss") : string.Empty,
+                RefundRemark = r.RefundRemark,
+                Money = r.Money,
+                RefundOptUser = r.RefundOptUser,
+                CreateTime = r.CreateTime.ToString("yyyy-MM-dd HH:mm:ss"),
+                UpdateTime = r.UpdateTime.ToString("yyyy-MM-dd HH:mm:ss")
+
+            }).ToListAsync();
+            return list;
+
+        }
+        public async ValueTask<(bool, string)> RefuseRefund(long orderId, string remark, string updateUser)
         {
             var model = await _smartCityContext.Orders.Where(r => r.OrderId.Equals(orderId)).FirstOrDefaultAsync();
-            if (model==null)
+            if (model == null)
             {
                 return (false, "该订单记录不存在");
             }
-            if (model.OrderStatus!= (int)OrderStatusEnum.RefundPending)
+            if (model.OrderStatus != (int)OrderStatusEnum.RefundPending)
             {
                 return (false, "该订单退款已处理");
             }
-            model.RefundTime= DateTime.Now;
+            model.RefundTime = DateTime.Now;
             model.RefundOptUser = updateUser;
             model.OrderStatus = (int)OrderStatusEnum.RefusalToRefund;
             model.RefundRemark = remark;
@@ -172,7 +205,7 @@ namespace SmartCityWebApi.Infrastructure.Repository
             return (result, result ? "拒绝退款成功" : "拒绝退款失败");
         }
 
-        public async ValueTask<(bool, string)> Refund(long orderId, string remark, string updateUser,Func<Order,ValueTask<(bool,string)>> fun)
+        public async ValueTask<(bool, string)> Refund(long orderId, string remark, string updateUser, Func<Order, ValueTask<(bool, string)>> fun)
         {
             var model = await _smartCityContext.Orders.Where(r => r.OrderId.Equals(orderId)).FirstOrDefaultAsync();
             if (model == null)
@@ -185,11 +218,11 @@ namespace SmartCityWebApi.Infrastructure.Repository
             }
             bool result = false;
             string msg = string.Empty;
-            if (fun != null) 
+            if (fun != null)
             {
                 (result, msg) = await fun(model);
             }
-            if (result) 
+            if (result)
             {
                 model.RefundTime = DateTime.Now;
                 model.RefundOptUser = updateUser;
@@ -198,7 +231,7 @@ namespace SmartCityWebApi.Infrastructure.Repository
                 result = await _smartCityContext.SaveChangesAsync() > 0;
                 msg = result ? "退款成功" : "退款失败";
             }
-          
+
             return (result, msg);
         }
     }

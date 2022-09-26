@@ -106,5 +106,41 @@ namespace SmartCityWebApi.Controllers.Mobile
             return mobileResModel;
         }
 
+        [HttpGet("Info/{id:long}")]
+        public async ValueTask<MobileResModel> ReservationInfo(long id) 
+        {
+            MobileResModel mobileResModel = new MobileResModel();
+            var model= await _reservationRepository.ReservationInfo(id);
+            if (model == null) 
+            {
+                mobileResModel.Status = false;
+                mobileResModel.Msg = "该预约场地不存在";
+                return mobileResModel;
+            }
+            if (model.IsBooked|| model.ReservationStatus == 0)
+            {
+                mobileResModel.Status = false;
+                mobileResModel.Msg = "该场地已预约";
+                return mobileResModel;
+            }
+            if (model.StartTime<=DateTime.Now)
+            {
+                mobileResModel.Status = false;
+                mobileResModel.Msg = "该场地预约时间已结束";
+                return mobileResModel;
+            }
+            mobileResModel.Status = true;
+            mobileResModel.Data = new
+            {
+                model.ReservationId,
+                model.ReservationDate,
+                model.SpaceName,
+                ReservationTime = model.StartTime.ToString("HH:ss") + "~" + model.EndTime.ToString("HH:ss"),
+                model.Money
+
+            };
+            return mobileResModel;
+        }
+
     }
 }
