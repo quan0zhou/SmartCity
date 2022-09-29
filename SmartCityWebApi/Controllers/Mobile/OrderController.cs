@@ -15,12 +15,12 @@ namespace SmartCityWebApi.Controllers.Mobile
             _orderRepository = orderRepository;
         }
 
-        [HttpGet("List/{id:long}")]
-        public async ValueTask<MobileResModel> List(long id)
+        [HttpGet("List/{id:long}/{status:int?}")]
+        public async ValueTask<MobileResModel> List(long id,int? status)
         {
             MobileResModel mobileResModel = new MobileResModel();
             mobileResModel.Status = true;
-            mobileResModel.Data=await _orderRepository.OrderList(id);
+            mobileResModel.Data=await _orderRepository.OrderList(id, status);
             return mobileResModel;
         }
 

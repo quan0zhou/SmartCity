@@ -11,7 +11,7 @@ namespace SmartCityWebApi.Domain.IRepository
 
         ValueTask<List<OrderModel>> OrderList(int? spaceType, long? spaceId, int? status, DateOnly? startDate, DateOnly? endDate, int? startTime, int? endTime, string userName, string userPhone);
 
-        ValueTask<IEnumerable<dynamic>> OrderList(long id);
+        ValueTask<IEnumerable<dynamic>> OrderList(long id, int? status);
 
         ValueTask<(bool, string)> RefuseRefund(long orderId, string remark,string updateUser);
 

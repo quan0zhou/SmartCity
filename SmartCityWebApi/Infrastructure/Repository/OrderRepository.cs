@@ -153,7 +153,7 @@ namespace SmartCityWebApi.Infrastructure.Repository
             return list;
         }
 
-        public async ValueTask<IEnumerable<dynamic>> OrderList(long id)
+        public async ValueTask<IEnumerable<dynamic>> OrderList(long id,int? status)
         {
             var query = _smartCityContext.Orders.AsNoTracking();
             if (id > 0)
@@ -161,7 +161,11 @@ namespace SmartCityWebApi.Infrastructure.Repository
                 query = query.Where(r => r.OrderId < id);
 
             }
-            var list=await query.OrderByDescending(r => r.OrderId).Take(2).Select(r => new 
+            if (status.HasValue)
+            {
+                query = query.Where(r => r.OrderStatus.Equals(status.Value));
+            }
+            var list=await query.OrderByDescending(r => r.OrderId).Take(10).Select(r => new 
             {
                 OrderId=r.OrderId.ToString(),
                 OrderNo = r.OrderNo,
@@ -172,6 +176,8 @@ namespace SmartCityWebApi.Infrastructure.Repository
                 ReservationDate = r.ReservationDate.ToString("yyyy-MM-dd"),
                 SpaceTypeName = r.SpaceType.ToSpaceTypeName(),
                 SpaceName = r.SpaceName,
+                r.OrderStatus,
+                LeftTime= (r.OrderStatus== (int)OrderStatusEnum.ReservationPendingPayment)?(r.StartTime.AddMinutes(5)-DateTime.Now).TotalMilliseconds:0,
                 OrderStatusName = r.OrderStatus.ToOrderStatusName(),
                 ReservationTime = r.StartTime.ToString("HH:ss") + "~" + r.EndTime.ToString("HH:ss"),
                 RefundTime = r.RefundTime.HasValue ? r.RefundTime.Value.ToString("yyyy-MM-dd HH:mm:ss") : string.Empty,

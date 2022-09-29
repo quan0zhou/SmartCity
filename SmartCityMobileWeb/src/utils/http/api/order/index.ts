@@ -4,5 +4,5 @@ enum URL {
 }
 
 
-const getOrderList = async (id:string) => get<any>({ url: URL.list+'/'+id });
+const getOrderList = async (id:string,status:string) => get<any>({ url: URL.list+'/'+id+'/'+status });
 export { getOrderList };
