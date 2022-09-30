@@ -60,7 +60,7 @@ const currentItem=computed(()=>{
   left-icon="volume-o"
   text="每日限约一小时，12小时内场地不可取消，否则需要审核退款"
 />
-<van-tabs v-model:active="activeName" type="card" sticky @change="changeTab">
+<van-tabs v-model:active="activeName" type="card"  @change="changeTab">
   <van-tab v-for="tag in tagList" :key="tag.date" :name="tag.date">
     <template #title> 
       <div>
@@ -151,7 +151,7 @@ const currentItem=computed(()=>{
   .tip_tag{
     text-align: center;
     margin-top: 20px;
-    margin-bottom: 50px;
+    margin-bottom: 70px;
     .book{
       color: rgb(26, 24, 24);
       border: 1px solid #ccc;

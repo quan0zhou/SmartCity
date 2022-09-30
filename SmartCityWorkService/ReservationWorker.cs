@@ -17,13 +17,17 @@ namespace SmartCityWorkService
             _serviceProvider = serviceProvider;
             _idGenerator = idGenerator;
         }
-
+        public override Task StartAsync(CancellationToken cancellationToken)
+        {
+            _logger.LogInformation("开始启动预约记录生成服务：{0}", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
+            return base.StartAsync(cancellationToken);
+        }
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             while (!stoppingToken.IsCancellationRequested)
             {
                 await Task.Delay(DateTime.Parse(DateTime.Now.AddDays(1).Date.ToString("yyyy-MM-dd 01:00:00"))-DateTime.Now, stoppingToken);
-                _logger.LogInformation("开始设置预订记录 {time}", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
+                _logger.LogInformation("开始设置预订记录: {0}", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
                 using (var scope = _serviceProvider.CreateScope())
                 {
                     try
