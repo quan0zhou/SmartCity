@@ -58,7 +58,7 @@ const currentItem=computed(()=>{
 <template>
   <van-notice-bar
   left-icon="volume-o"
-  text="每日限约一小时，12小时内场地不可取消，否则需要审核退款"
+  text="可多次预约，单次预约只限一小时，12小时内场地不可取消，否则需要审核退款"
 />
 <van-tabs v-model:active="activeName" type="card"  @change="changeTab">
   <van-tab v-for="tag in tagList" :key="tag.date" :name="tag.date">
@@ -83,7 +83,7 @@ const currentItem=computed(()=>{
         <tr v-for="(t,i) in tag.timeArray" :key="i">
                     <td>{{ (t.startTimeStr+'~'+t.endTimeStr) }}</td>
                     <td @click="checkItem(item)"  v-for="item in tag.items.filter((r: any)=>r.startTime==t.startTime)" :key="item.reservationId" :class="[item.isChecked?'ant-tag-orange':(item.reservationStatus==0?'ant-tag-grey':'')]">
-                      <div v-if="item.reservationStatus==1">¥ {{ item.money }}</div>
+                      <div v-if="item.reservationStatus==1"><label class="money_tip">¥</label> {{ item.money }}</div>
                     </td>
                   </tr>
       </tbody>
@@ -139,6 +139,9 @@ const currentItem=computed(()=>{
         tbody{
           tr>td{
             color: #323233;
+            .money_tip{
+              font-size: 10px;
+            }
           }
           tr>td:first-child{
             background:#2d6ce9;

@@ -31,6 +31,8 @@ namespace SmartCityWorkService.Infrastructure.Repository
 
         public async ValueTask<bool> ReservationSave(IEnumerable<Reservation> reservations) 
         {
+            string dataStrs = string.Join(",", reservations.GroupBy(r=>r.ReservationDate).Select(r => "'" + r.Key.ToString("yyyy-MM-dd") + "'"));
+            await _smartCityContext.Database.ExecuteSqlRawAsync($"DELETE FROM \"reservation\" WHERE \"ReservationDate\" IN ({dataStrs})");
             _smartCityContext.Reservations.AddRange(reservations);
             return await _smartCityContext.SaveChangesAsync() > 0;
         }

@@ -11,7 +11,7 @@ namespace SmartCityWorkService
         private readonly IServiceProvider _serviceProvider;
         private readonly IdGenerator _idGenerator;
 
-        public ReservationWorker(ILogger<ReservationWorker> logger, IServiceProvider serviceProvider,IdGenerator idGenerator)
+        public ReservationWorker(ILogger<ReservationWorker> logger, IServiceProvider serviceProvider, IdGenerator idGenerator)
         {
             _logger = logger;
             _serviceProvider = serviceProvider;
@@ -26,7 +26,7 @@ namespace SmartCityWorkService
         {
             while (!stoppingToken.IsCancellationRequested)
             {
-                await Task.Delay(DateTime.Parse(DateTime.Now.AddDays(1).Date.ToString("yyyy-MM-dd 01:00:00"))-DateTime.Now, stoppingToken);
+
                 _logger.LogInformation("开始设置预订记录: {0}", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
                 using (var scope = _serviceProvider.CreateScope())
                 {
@@ -49,11 +49,13 @@ namespace SmartCityWorkService
                         }
                         var createdDays = await reservationRepository.GetReservationCount(DateOnly.Parse(nowDate.ToString("yyyy-MM-dd")));
                         var leftDays = setting.SettableDays - createdDays;
+                        _logger.LogInformation("剩余天数：" + leftDays);
                         if (leftDays > 0)
                         {
-                            var startTime = DateTime.Parse(nowDate.ToString($"yyyy-MM-dd {setting.StartTime.ToString("HH:mm:ss")}"));
-                            var endTime = DateTime.Parse(nowDate.AddDays(leftDays).ToString($"yyyy-MM-dd {setting.EndTime.ToString("HH:mm:ss")}"));
+                            var startTime = DateTime.Parse(nowDate.AddDays(createdDays + 1).ToString($"yyyy-MM-dd {setting.StartTime.ToString("HH:mm:ss")}"));
+                            var endTime = DateTime.Parse(nowDate.AddDays(setting.SettableDays).ToString($"yyyy-MM-dd {setting.EndTime.ToString("HH:mm:ss")}"));
                             List<Reservation> list = new List<Reservation>();
+                            _logger.LogInformation("结束时间：" + endTime);
                             while (startTime <= endTime)
                             {
                                 foreach (var space in spaces)
@@ -67,20 +69,21 @@ namespace SmartCityWorkService
                                         EndTime = startTime.AddHours(setting.TimePeriod),
                                         ReservationDate = DateOnly.Parse(startTime.ToString("yyyy-MM-dd")),
                                         ReservationStatus = 1,
-                                        IsBooked=false,
+                                        IsBooked = false,
                                         Money = startTime.ToReservationMoney(),
                                         ReservationId = _idGenerator.CreateId()
                                     });
                                 }
                                 startTime = startTime.AddHours(setting.TimePeriod);
-                                if (startTime>= DateTime.Parse(startTime.ToString($"yyyy-MM-dd {setting.EndTime.ToString("HH:mm:ss")}")))
+                                if (startTime >= DateTime.Parse(startTime.ToString($"yyyy-MM-dd {setting.EndTime.ToString("HH:mm:ss")}")))
                                 {
                                     startTime = DateTime.Parse(startTime.AddDays(1).ToString($"yyyy-MM-dd {setting.StartTime.ToString("HH:mm:ss")}"));
                                 }
-        
+
                             }
                             if (list.Count > 0)
                             {
+                                _logger.LogInformation("保存记录：" + list.Count + " 日期：" + string.Join(",", list.GroupBy(r => r.ReservationDate).Select(r => "'" + r.Key.ToString("yyyy-MM-dd") + "'")));
                                 if (await reservationRepository.ReservationSave(list))
                                 {
                                     _logger.LogInformation("设置预订记录保存成功");
@@ -102,6 +105,8 @@ namespace SmartCityWorkService
                     }
 
                 }
+
+                await Task.Delay(DateTime.Parse(DateTime.Now.AddDays(1).Date.ToString("yyyy-MM-dd 01:00:00")) - DateTime.Now, stoppingToken);
             }
         }
     }
