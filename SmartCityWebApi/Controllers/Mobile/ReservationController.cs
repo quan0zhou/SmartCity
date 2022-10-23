@@ -21,9 +21,17 @@ namespace SmartCityWebApi.Controllers.Mobile
             MobileResModel mobileResModel = new MobileResModel();
             var now = DateTime.Now;
             DateTime endDate;
-            if (now.ToWeekName() == "星期一" && now >= Convert.ToDateTime("09:00"))
+            if (now.ToWeekName() == "星期一")
             {
-                endDate = now.AddDays(7);
+                if (now >= Convert.ToDateTime("09:00"))
+                {
+                    endDate = now.AddDays(7);
+                }
+                else
+                {
+                    endDate=now;
+                }
+                
             }
             else
             {
