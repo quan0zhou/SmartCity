@@ -1,14 +1,19 @@
 using IdGen;
 using Magicodes.ExporterAndImporter.Excel;
+using Medallion.Threading;
+using Medallion.Threading.Redis;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using NLog.Web;
 using SmartCityWebApi.Domain.IRepository;
 using SmartCityWebApi.Extensions;
 using SmartCityWebApi.Infrastructure;
 using SmartCityWebApi.Infrastructure.Repository;
+using StackExchange.Redis;
 using System.Net;
 using System.Text;
 using System.Text.Encodings.Web;
@@ -48,7 +53,16 @@ builder.Services.AddCors(options =>
             policy.WithOrigins(builder.Configuration["CorsOrigins"].ToString().Split(",")).AllowAnyHeader().AllowAnyMethod().AllowCredentials();
         });
 });
+string redisConnectionString = builder.Configuration.GetConnectionString("Redis");
+builder.Services.AddStackExchangeRedisCache(options =>
+{
+    options.Configuration = redisConnectionString;
+    options.InstanceName = "Redis";
+});
+var redisConnection = await ConnectionMultiplexer.ConnectAsync(redisConnectionString);
+builder.Services.AddSingleton<IDistributedLockProvider>(_ => new RedisDistributedSynchronizationProvider(redisConnection.GetDatabase(1)));
 
+builder.Services.AddHttpClient();
 //JWTÈÏÖ¤
 builder.Services.AddAuthentication(option =>
 {

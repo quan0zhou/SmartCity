@@ -1,11 +1,30 @@
 <script setup lang="ts">
 import { ref, onBeforeMount,computed } from 'vue'
-// import { getSpaceInfo } from '@/utils/http/api/custSpace/index'
+import {useRoute} from 'vue-router'
+import { getSpaceInfo,getOpenId } from '@/utils/http/api/custSpace/index'
 import { getTagList,getTag } from '@/utils/http/api/reservation/index'
-import { Toast } from 'vant';
-var activeName=ref<string>()
+import { Toast,Notify } from 'vant';
+const route = useRoute()
+let activeName=ref<string>()
 let tagList=ref<any[]>()
   onBeforeMount(async ()=>{
+  if(!import.meta.env.DEV){
+    let openid= localStorage.getItem('openid')
+    if((openid||'').trim().length<=0){
+      if((route.query.code||'').length>0){
+        var openIdResult=await getOpenId(route.query.code as string)
+        if(openIdResult.status){
+          localStorage.setItem('openid',openIdResult.data)
+        }else{
+          Notify({ type: 'danger', message: openIdResult.msg });
+        }
+      }else{
+        var settings=(await getSpaceInfo()).data
+        window.location.href=`https://open.weixin.qq.com/connect/oauth2/authorize?appid=${settings.appID}&redirect_uri=http%3A%2F%2Fwww.ruanjiezh.cn&response_type=code&scope=snsapi_base#wechat_redirect`
+      }
+
+    }   
+  }
   tagList.value = (await getTagList()).data;
 })
 const checkItem=(item:any)=>{
@@ -29,11 +48,10 @@ const checkItem=(item:any)=>{
 const changeTab=async (name:string)=>{
   const loadingToast=Toast.loading({
     message: '加载中...',
-    forbidClick: false,
+    forbidClick: true,
     loadingType: 'spinner',
     })
    var newTag=(await getTag(name)).data
-   console.log(newTag)
    loadingToast.clear()
    var currentTag=ref(tagList.value?.find((tag:any)=>{
        return tag.date==activeName.value
@@ -58,7 +76,7 @@ const currentItem=computed(()=>{
 <template>
   <van-notice-bar
   left-icon="volume-o"
-  text="可多次预约，单次预约只限一小时，12小时内场地不可取消，否则需要审核退款"
+  text="12小时内场地不可取消"
 />
 <van-tabs v-model:active="activeName" type="card"  @change="changeTab">
   <van-tab v-for="tag in tagList" :key="tag.date" :name="tag.date">
@@ -102,6 +120,11 @@ const currentItem=computed(()=>{
 </van-action-bar>
 </template>
 <style lang="less" scoped>
+.van-notice-bar{
+  .van-notice-bar__content{
+    font-size: 14px;
+  }
+}
   .van-tabs {
      /deep/  .van-tabs__wrap{
       height: 70px;
@@ -122,6 +145,7 @@ const currentItem=computed(()=>{
         thead{
           background-color: rgb(36, 104, 230);
           color: aliceblue;
+          font-size: 15px;
         }
         tr>td{
           text-align: center;
@@ -139,8 +163,9 @@ const currentItem=computed(()=>{
         tbody{
           tr>td{
             color: #323233;
+            font-size: 14px;
             .money_tip{
-              font-size: 10px;
+              font-size: 8px;
             }
           }
           tr>td:first-child{

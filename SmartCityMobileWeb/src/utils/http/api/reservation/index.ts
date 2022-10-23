@@ -3,7 +3,7 @@ import { get } from '@/utils/http/axios';
 enum URL {
     tagList = '/reservation/tagList',
     tag='/reservation/tag',
-    info='/reservation/info'
+    info='/reservation/info',
 }
 
 const getTagList = async () => get<any>({ url: URL.tagList });

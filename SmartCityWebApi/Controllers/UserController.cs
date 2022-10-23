@@ -40,8 +40,8 @@ namespace SmartCityWebApi.Controllers
                     {
                         pers.Add(1000);
                     }
-                    var menus = menuList.Where(r => pers.Any(p => p.Equals(r.Id))).Select(r => r.ParentId);
-                    menuList = menuList.Where(r => pers.Any(p => p.Equals(r.Id))|| menus.Any(p=>p.Equals(r.ParentId))).ToList();
+                    var menus = menuList.Where(r => pers.Contains(r.Id)).GroupBy(r => r.ParentId).Select(r=>r.Key);
+                    menuList = menuList.Where(r => pers.Any(p => p.Equals(r.Id))|| menus.Any(p=>p.Equals(r.Id))).ToList();
                 }
 
             }

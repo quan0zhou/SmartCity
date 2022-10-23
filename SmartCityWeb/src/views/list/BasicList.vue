@@ -44,6 +44,12 @@
         <a-form-model-item ref="appSecret" label="AppSecret" prop="appSecret">
           <a-input v-model="form.appSecret"/>
         </a-form-model-item>
+        <a-form-model-item ref="certificateSerialNumber" label="商户证书序列号" prop="certificateSerialNumber">
+          <a-input v-model="form.certificateSerialNumber"/>
+        </a-form-model-item>
+        <a-form-model-item ref="certificatePrivateKey" label="商户证书私钥" prop="certificatePrivateKey">
+          <a-textarea v-model="form.certificatePrivateKey"/>
+        </a-form-model-item>
         <a-form-model-item :wrapper-col="{ span: 14, offset: 4 }">
           <a-button type="primary" @click="onSubmit" :loading="confirmLoading">
             保存
@@ -87,7 +93,9 @@ export default {
         mchID: '',
         subMchID: '',
         appKey: '',
-        appSecret: ''
+        appSecret: '',
+        certificateSerialNumber: '',
+        certificatePrivateKey: ''
       },
       rules: {
         reservationTitle: [
@@ -103,7 +111,9 @@ export default {
         mchID: [{ required: true, message: '请填写商户号', trigger: 'blur' }],
         subMchID: [{ required: true, message: '请填写子商户号', trigger: 'blur' }],
         appKey: [{ required: true, message: '请填写appKey', trigger: 'blur' }],
-        appSecret: [{ required: true, message: '请填写appSecret', trigger: 'blur' }]
+        appSecret: [{ required: true, message: '请填写appSecret', trigger: 'blur' }],
+        certificateSerialNumber: [{ required: true, message: '请填写商户证书序列号', trigger: 'blur' }],
+        certificatePrivateKey: [{ required: true, message: '请填写商户证书私钥', trigger: 'blur' }]
       }
     }
   },

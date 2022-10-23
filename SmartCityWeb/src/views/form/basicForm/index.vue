@@ -14,7 +14,7 @@
         <a-tag color="green">已预订</a-tag>
         <a-tag color="orange">当前选中</a-tag>
       </a-row>
-      <a-tabs v-model="activeKey" type="card" @change="tabChange">
+      <a-tabs v-model="activeKey" type="card" @change="tabChange" >
         <a-tab-pane v-for="e in tabList" :key="e.date" >
           <template slot="tab">
             <div>{{ e.date }}</div>
@@ -66,7 +66,7 @@
             :label-col="labelCol"
             :wrapper-col="wrapperCol"
           >
-            <a-form-model-item ref="money" label="预订金额" prop="money">
+            <a-form-model-item label="预订金额" prop="money">
               <a-input-number v-model="form.money" :min="0.01" :max="9999" placeholder="请输入预订金额" />
             </a-form-model-item>
           </a-form-model>
@@ -86,10 +86,10 @@ export default {
     return {
       labelCol: { span: 4 },
       wrapperCol: { span: 16 },
-      form: { money: '' },
+      form: { money: '', items: [] },
       rules: {
-        moeny: [
-           { required: true, message: '请输入预订金额', trigger: 'change' }
+        money: [
+           { required: true, message: '请输入预订金额', trigger: 'blur' }
         ]
       },
       title: '修改预订金额',
@@ -271,8 +271,8 @@ export default {
     }
   }
   .ant-table-body-inner{
-  height: calc(100vh - 370px);
-  overflow-y: scroll;
+    height: calc(100vh - 370px);
+    overflow-y: scroll;
   tbody{
     height: calc(100% - 200px);
     tr>td:first-child{

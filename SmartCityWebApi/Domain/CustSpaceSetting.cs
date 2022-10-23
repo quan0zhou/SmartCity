@@ -54,6 +54,18 @@ namespace SmartCityWebApi.Domain
         [Column(TypeName = "varchar(200)")]
         public string AppSecret { get; set; } = default!;
 
+        /// <summary>
+        /// 微信商户证书序列号
+        /// </summary>
+        [Column(TypeName = "varchar(200)")]
+        public string CertificateSerialNumber { get; set; } = default!;
+
+        /// <summary>
+        /// 微信商户证书私钥
+        /// </summary>
+        [Column(TypeName = "varchar(2048)")]
+        public string CertificatePrivateKey { get; set; } = default!;
+
         public long CreateUser { get; set; }
 
         [Column(TypeName = "timestamp")]

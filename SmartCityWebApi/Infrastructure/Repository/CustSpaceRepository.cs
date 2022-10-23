@@ -2,9 +2,12 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.VisualBasic;
+using OfficeOpenXml.FormulaParsing.Excel.Functions.Text;
 using SmartCityWebApi.Domain;
 using SmartCityWebApi.Domain.IRepository;
+using SmartCityWebApi.Models;
 using System.ComponentModel.DataAnnotations.Schema;
+using static SKIT.FlurlHttpClient.Wechat.TenpayV3.Models.CreateApplyForSubMerchantApplymentRequest.Types.Business.Types.SaleScene.Types;
 
 namespace SmartCityWebApi.Infrastructure.Repository
 {
@@ -18,23 +21,25 @@ namespace SmartCityWebApi.Infrastructure.Repository
             _idGenerator = idGenerator;
         }
 
-        public async ValueTask<dynamic?> GetCustSpaceSettingInfo()
+        public async ValueTask<CustSpaceSettingModel?> GetCustSpaceSettingInfo()
         {
-            return await _smartCityContext.CustSpaceSettings.AsNoTracking().Select(r => new
+            return await _smartCityContext.CustSpaceSettings.AsNoTracking().Select(r => new CustSpaceSettingModel
             {
                 CustId = r.CustId.ToString(),
-                r.ReservationTitle,
-                r.StartTime,
-                r.EndTime,
-                r.TimePeriod,
-                r.SettableDays,
-                r.BookableDays,
-                r.DirectRefundPeriod,
-                r.AppID,
-                r.MchID,
-                r.SubMchID,
-                r.AppKey,
-                r.AppSecret
+                ReservationTitle=r.ReservationTitle,
+                StartTime=r.StartTime,
+                EndTime=r.EndTime,
+                TimePeriod=r.TimePeriod,
+                SettableDays=r.SettableDays,
+                BookableDays = r.BookableDays,
+                DirectRefundPeriod= r.DirectRefundPeriod,
+                AppID= r.AppID,
+                MchID= r.MchID,
+                SubMchID=r.SubMchID,
+                AppKey = r.AppKey,
+                AppSecret= r.AppSecret,
+                CertificatePrivateKey= r.CertificatePrivateKey,
+                CertificateSerialNumber = r.CertificateSerialNumber
 
             }).FirstOrDefaultAsync();
         }
@@ -62,6 +67,8 @@ namespace SmartCityWebApi.Infrastructure.Repository
                 model.SubMchID = custSpaceSetting.SubMchID;
                 model.AppKey = custSpaceSetting.AppKey;
                 model.AppSecret = custSpaceSetting.AppSecret;
+                model.CertificateSerialNumber = custSpaceSetting.CertificateSerialNumber;
+                model.CertificatePrivateKey = custSpaceSetting.CertificatePrivateKey;
                 model.UpdateUser = custSpaceSetting.UpdateUser;
                 model.UpdateTime = custSpaceSetting.UpdateTime;
             }

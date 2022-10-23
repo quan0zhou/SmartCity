@@ -1,6 +1,12 @@
-﻿using Magicodes.ExporterAndImporter.Excel;
+﻿using IdGen;
+using Magicodes.ExporterAndImporter.Excel;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
+using SKIT.FlurlHttpClient.Wechat.TenpayV3.Models;
+using SKIT.FlurlHttpClient.Wechat.TenpayV3.Settings;
+using SKIT.FlurlHttpClient.Wechat.TenpayV3;
 using SmartCityWebApi.Domain.IRepository;
+using SmartCityWebApi.Infrastructure.Repository;
 using SmartCityWebApi.Models;
 using SmartCityWebApi.ViewModels;
 
@@ -12,13 +18,15 @@ namespace SmartCityWebApi.Controllers
     {
 
         public readonly IOrderRepository _orderRepository;
+        public readonly ICustSpaceRepository _custSpaceRepository;
 
         private readonly ExcelExporter _excelExporter;
 
-        public OrderController(IOrderRepository orderRepository, ExcelExporter excelExporter)
+        public OrderController(IOrderRepository orderRepository, ExcelExporter excelExporter, ICustSpaceRepository custSpaceRepository)
         {
             _orderRepository = orderRepository;
             _excelExporter = excelExporter;
+            _custSpaceRepository = custSpaceRepository;
         }
         [HttpGet("DashBoard")]
         public async ValueTask<IActionResult> DashBoard()
@@ -66,8 +74,53 @@ namespace SmartCityWebApi.Controllers
             {
                 return this.Ok(new { status = false, msg = "该订单记录不存在" });
             }
+            var spaceSetting = await _custSpaceRepository.GetCustSpaceSettingInfo();
+            if (spaceSetting == null)
+            {
+                return this.Ok(new { status = false, msg = "微信支付配置参数为空" });
+            }
             var user = this.CurrentUser;
-            var (status, msg) = await _orderRepository.Refund(refundViewModel.OrderId, refundViewModel.Remark, user.UserName + "(" + user.UserAccount + ")", async (order) => { await Task.CompletedTask; return (true, ""); });
+            var (status, msg) = await _orderRepository.Refund(refundViewModel.OrderId, refundViewModel.Remark, user.UserName + "(" + user.UserAccount + ")", async (order) => 
+            {
+                var options = new WechatTenpayClientOptions()
+                {
+                    MerchantId = spaceSetting!.MchID,
+                    MerchantV3Secret = spaceSetting.AppKey,
+                    MerchantCertificateSerialNumber = spaceSetting.CertificateSerialNumber,
+                    MerchantCertificatePrivateKey = spaceSetting.CertificatePrivateKey,
+                    PlatformCertificateManager = new InMemoryCertificateManager()
+                };
+                var request = new CreateRefundDomesticRefundRequest()
+                {
+                    OutTradeNumber = order.OrderNo,
+                    OutRefundNumber = order.OrderNo,
+                    SubMerchantId = spaceSetting!.SubMchID,
+                    Amount = new CreateRefundDomesticRefundRequest.Types.Amount()
+                    {
+                        Total = (int)(order.Money * 100),
+                        Refund = (int)(order.Money * 100)
+                    },
+                    Reason = "用户申请退款"
+                };
+                try
+                {
+                    var client = new WechatTenpayClient(options);
+                    var response = await client.ExecuteCreateRefundDomesticRefundAsync(request, cancellationToken: HttpContext.RequestAborted);
+                    if (response.IsSuccessful())
+                    {
+                        return (true, "退款成功");
+                    }
+                    else
+                    {
+                        return (false, "退款失败:" + response.ErrorMessage);
+  
+                    }
+                }
+                catch (Exception ex)
+                {
+                    return (false, "退款失败:服务器处理异："+ex.Message);
+                }
+            });
             return this.Ok(new { status, msg });
         }
 
