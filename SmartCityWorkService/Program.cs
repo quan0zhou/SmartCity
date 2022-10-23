@@ -14,7 +14,9 @@ IHost host = Host.CreateDefaultBuilder(args)
         string connectionString = builder.Configuration.GetConnectionString("SmartCityContext");
         services.AddDbContext<SmartCityContext>(dbContextOptions => dbContextOptions.UseNpgsql(connectionString));
         services.AddScoped<IReservationRepository, ReservationRepository>();
+        services.AddScoped<IOrderRepository, OrderRepository>();
         services.AddHostedService<ReservationWorker>();
+        services.AddHostedService<CancelOrderWorker>();
         services.AddSingleton<IdGenerator>(new IdGenerator(2));
     })
     .ConfigureLogging(logging =>

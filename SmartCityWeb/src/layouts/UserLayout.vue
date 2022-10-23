@@ -19,7 +19,11 @@
         </div>
 
         <router-view />
-
+        <div class="footer">
+          <div class="links">
+            <label style="color:#00000073">备案号：</label><a href="https://beian.miit.gov.cn/" target="_blank">京ICP备2022029210号-1</a>
+          </div>
+        </div>
       </div>
     </div>
   </div>

@@ -133,7 +133,7 @@ namespace SmartCityWebApi.Controllers.Mobile
             mobileResModel.Data = new
             {
                 model.ReservationId,
-                model.ReservationDate,
+                ReservationDate= model.ReservationDate+$" ({DateOnly.Parse(model.ReservationDate).ToWeekName()})",
                 model.SpaceName,
                 ReservationTime = model.StartTime.ToString("HH:ss") + "~" + model.EndTime.ToString("HH:ss"),
                 model.Money

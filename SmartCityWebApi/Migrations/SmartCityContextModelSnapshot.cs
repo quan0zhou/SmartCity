@@ -87,6 +87,14 @@ namespace SmartCityWebApi.Migrations
                     b.Property<int>("BookableDays")
                         .HasColumnType("integer");
 
+                    b.Property<string>("CertificatePrivateKey")
+                        .IsRequired()
+                        .HasColumnType("varchar(2048)");
+
+                    b.Property<string>("CertificateSerialNumber")
+                        .IsRequired()
+                        .HasColumnType("varchar(200)");
+
                     b.Property<DateTime>("CreateTime")
                         .HasColumnType("timestamp");
 

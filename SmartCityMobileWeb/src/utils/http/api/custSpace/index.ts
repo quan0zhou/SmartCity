@@ -1,7 +1,8 @@
 
 import { get } from '@/utils/http/axios';
 enum URL {
-  info = '/custSpace/info'
+  info = '/custSpace/info',
+  openId = '/custSpace/openId'
 }
 
 export interface LoginData {
@@ -10,4 +11,5 @@ export interface LoginData {
 }
 
 const getSpaceInfo = async () => get<any>({ url: URL.info });
-export { getSpaceInfo };
+const getOpenId = async (code:string) => get<any>({ url: URL.openId+'/'+code });
+export { getSpaceInfo,getOpenId };

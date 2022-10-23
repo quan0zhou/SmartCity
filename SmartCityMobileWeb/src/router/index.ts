@@ -16,6 +16,11 @@ const router = createRouter({
       component: ContactView
     },
     {
+      path: '/payResult',
+      name: 'payResult',
+      component: () => import('../views/PayResultView.vue')
+    },
+    {
       path: '/order',
       name: 'order',
       // route level code-splitting

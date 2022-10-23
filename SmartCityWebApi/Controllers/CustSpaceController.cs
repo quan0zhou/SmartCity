@@ -32,7 +32,8 @@ namespace SmartCityWebApi.Controllers
             custSpaceSetting.AppSecret = (custSpaceSetting.AppSecret ?? "").Trim();
             custSpaceSetting.MchID = (custSpaceSetting.MchID ?? "").Trim();
             custSpaceSetting.SubMchID = (custSpaceSetting.SubMchID ?? "").Trim();
-
+            custSpaceSetting.CertificatePrivateKey = (custSpaceSetting.CertificatePrivateKey ?? "").Trim();
+            custSpaceSetting.CertificateSerialNumber = (custSpaceSetting.CertificateSerialNumber ?? "").Trim();
             var user = this.CurrentUser;
             var (result, msg) = await _custSpaceRepository.CustSpaceSettingSave(new Domain.CustSpaceSetting
             {
@@ -49,6 +50,8 @@ namespace SmartCityWebApi.Controllers
                 MchID = custSpaceSetting.MchID,
                 SubMchID = custSpaceSetting.SubMchID,
                 TimePeriod = custSpaceSetting.TimePeriod,
+                CertificatePrivateKey = custSpaceSetting.CertificatePrivateKey,
+                CertificateSerialNumber = custSpaceSetting.CertificateSerialNumber,
                 CreateTime = DateTime.Now,
                 CreateUser = user.UserId,
                 UpdateTime = DateTime.Now,

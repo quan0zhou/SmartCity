@@ -2,6 +2,8 @@
 import { ref,onBeforeMount} from 'vue'
 import {useRouter,useRoute} from 'vue-router'
 import { getInfo } from '@/utils/http/api/reservation/index'
+import { createOrder } from '@/utils/http/api/order/index'
+import { Notify } from 'vant';
 const route=useRoute()
 const router=useRouter()
 const model=ref({
@@ -16,9 +18,12 @@ const reservation=ref({
 })
 const isError=ref(true)
 const errorMsg=ref('')
+const loading = ref(false)
+let reservationId=''
 onBeforeMount(async ()=>{
   if((route.query.id||'').length>0){
-    const result = await getInfo(route.query.id as string);
+    reservationId=route.query.id as string
+    const result = await getInfo(reservationId);
     if(result.data){
       reservation.value=result.data
       Object.assign(reservation.value,{money:"¥ "+result.data.money})
@@ -36,9 +41,61 @@ const validator = (val:string) => /^1[3456789]\d{9}$/.test(val);
 const onClickLeft=()=>{
   router.push('/')
 }
-const onSubmit = (values:any) => {
-      console.log('submit', values);
-    };
+const onBridgeReady = (request_data: any): void => {
+      (window as any).WeixinJSBridge.invoke(
+        "getBrandWCPayRequest",
+        request_data.prepayData,
+        (res: any) => {
+          if (res.err_msg == "get_brand_wcpay_request:ok") {
+            //由点金计划控制跳转
+            // router.push({
+            //   path: "/payResult",
+            //   query:{ id:request_data.orderId}
+            // });
+          }
+          else if (res.err_msg == "get_brand_wcpay_request:cancel") { 
+            router.push({
+              path: "/order"
+            });
+          }
+        }
+      )
+    }
+const onSubmit =  async (values:any) => {
+    let openid=localStorage.getItem("openid")
+    let data= Object.assign({"openId":openid,"reservationId":reservationId},values)
+    if((data.openId||'').length<=0){
+      Notify({ type: 'danger', message: 'openId为空' });
+      return
+    }
+    loading.value=true
+    let result= await createOrder(data)
+    loading.value=false
+    if(result.status){
+      if (typeof (window as any).WeixinJSBridge == "undefined") {
+        if ((document as any).addEventListener) {
+          (document as any).addEventListener(
+            "WeixinJSBridgeReady",
+            onBridgeReady(result.data),
+            false
+          );
+        } else if ((document as any).attachEvent) {
+          (document as any).attachEvent(
+            "WeixinJSBridgeReady",
+            onBridgeReady(result.data)
+          );
+          (document as any).attachEvent(
+            "OnWeixinJSBridgeReady",
+            onBridgeReady(result.data)
+          );
+        }
+      } else {
+        onBridgeReady(result.data);
+      }
+    }else{
+      Notify({ type: 'danger', message: result.msg });
+    }
+};
 </script>
 <template>
   <van-nav-bar
@@ -90,7 +147,7 @@ const onSubmit = (values:any) => {
     />
   </van-cell-group>
   <div style="margin: 16px;" >
-    <van-button round block type="primary" native-type="submit">
+    <van-button round block type="primary" native-type="submit" :loading="loading">
       支付
     </van-button>
   </div>

@@ -12,7 +12,7 @@ using SmartCityWebApi.Infrastructure;
 namespace SmartCityWebApi.Migrations
 {
     [DbContext(typeof(SmartCityContext))]
-    [Migration("20220913082125_InitialCreate")]
+    [Migration("20221019131109_InitialCreate")]
     partial class InitialCreate
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -88,6 +88,14 @@ namespace SmartCityWebApi.Migrations
 
                     b.Property<int>("BookableDays")
                         .HasColumnType("integer");
+
+                    b.Property<string>("CertificatePrivateKey")
+                        .IsRequired()
+                        .HasColumnType("varchar(2048)");
+
+                    b.Property<string>("CertificateSerialNumber")
+                        .IsRequired()
+                        .HasColumnType("varchar(200)");
 
                     b.Property<DateTime>("CreateTime")
                         .HasColumnType("timestamp");
