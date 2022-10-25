@@ -128,6 +128,9 @@ const currentItem=computed(()=>{
   .van-tabs {
      /deep/  .van-tabs__wrap{
       height: 70px;
+      .van-tabs__nav--card{
+        margin: 0px;
+      }
       .van-tab{
         text-align: center;
         .van-tab__text--ellipsis{

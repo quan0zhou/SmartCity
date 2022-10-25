@@ -87,44 +87,44 @@ namespace SmartCityWebApi.Controllers.Mobile
         {
             MobileResModel mobileResModel = new MobileResModel();
             orderPayViewModel.UserName = (orderPayViewModel.UserName ?? string.Empty).Trim();
-            orderPayViewModel.UserPhone = (orderPayViewModel.UserPhone ?? string.Empty).Trim();
-            var reservation = await _reservationRepository.ReservationInfo(orderPayViewModel.ReservationId);
-            if (reservation == null)
-            {
-                mobileResModel.Status = false;
-                mobileResModel.Msg = "该预订记录不存在";
-                return mobileResModel;
-            }
-            if (reservation.IsBooked)
-            {
-                mobileResModel.Status = false;
-                mobileResModel.Msg = "该场地所选时间段已预订";
-                return mobileResModel;
-            }
-            if (reservation.StartTime < DateTime.Now)
-            {
-                mobileResModel.Status = false;
-                mobileResModel.Msg = "该场地所选时间段活动已开始";
-                return mobileResModel;
-            }
-            var now = DateTime.Now;
-            var startTime = Convert.ToDateTime("09:00");
-            var endTime = Convert.ToDateTime("00:00").AddDays(1);
-            if (now.ToWeekName() == "星期一" && now >= startTime)
-            {
-                if (await _orderRepository.LimitOrder(orderPayViewModel.OpenId,startTime,endTime))
-                {
-                    mobileResModel.Status = false;
-                    mobileResModel.Msg = "今日只限预订一次";
-                    return mobileResModel;
-                }
-            }
+            orderPayViewModel.UserPhone = (orderPayViewModel.UserPhone ?? string.Empty).Trim();      
             try
             {
                 await using (var handle = await _synchronizationProvider.TryAcquireLockAsync($"Reservation{orderPayViewModel.ReservationId}"))
                 {
                     if (handle != null)
                     {
+                        var reservation = await _reservationRepository.ReservationInfo(orderPayViewModel.ReservationId);
+                        if (reservation == null)
+                        {
+                            mobileResModel.Status = false;
+                            mobileResModel.Msg = "该预订记录不存在";
+                            return mobileResModel;
+                        }
+                        if (reservation.IsBooked)
+                        {
+                            mobileResModel.Status = false;
+                            mobileResModel.Msg = "该场地所选时间段已预订";
+                            return mobileResModel;
+                        }
+                        if (reservation.StartTime < DateTime.Now)
+                        {
+                            mobileResModel.Status = false;
+                            mobileResModel.Msg = "该场地所选时间段活动已开始";
+                            return mobileResModel;
+                        }
+                        var now = DateTime.Now;
+                        var startTime = Convert.ToDateTime("09:00");
+                        var endTime = Convert.ToDateTime("00:00").AddDays(1);
+                        if (now.ToWeekName() == "星期一" && now >= startTime)
+                        {
+                            if (await _orderRepository.LimitOrder(orderPayViewModel.OpenId, startTime, endTime))
+                            {
+                                mobileResModel.Status = false;
+                                mobileResModel.Msg = "今日只限预订一次";
+                                return mobileResModel;
+                            }
+                        }
                         var spaceSetting = await _custSpaceRepository.GetCustSpaceSettingInfo();
                         if (spaceSetting == null)
                         {
