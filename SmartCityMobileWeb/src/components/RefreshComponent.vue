@@ -11,7 +11,6 @@ const loading = ref(false);
 const finished = ref(false);
 const refreshing = ref(false);
 let lastId: string = '0'
-const btnPayLoading=ref(false)
 // const activeName = ref('');
 type Props ={
     activeName:string
@@ -119,10 +118,10 @@ const onBridgeReady = (request_data: any): void => {
         }
       )
 }
-const pay= async(orderId:string)=>{
-    btnPayLoading.value=true
-    let result= await payOrder(orderId)
-    btnPayLoading.value=false
+const pay= async(item:any)=>{
+    Object.assign(item,{payLoading:true})
+    let result= await payOrder(item.orderId)
+    Object.assign(item,{payLoading:false})
     if(result.status){
       if (typeof (window as any).WeixinJSBridge == "undefined") {
         if ((document as any).addEventListener) {
@@ -201,7 +200,7 @@ const finishTime=(item:any)=>{
                 <van-row class="order_foot" v-if="item.orderStatus==0">
                     <van-col span="24">
                         <van-button color="#ef0a24" plain size="mini" @click="cancel(item.orderId,index)">取消订单</van-button>
-                        <van-button type="danger" size="mini" :loading="btnPayLoading" loading-text="支付中……" v-if="item.leftTime>0" @click="pay(item.orderId)">支付（剩余：<van-count-down :time="item.leftTime" @finish="finishTime(item)" format="mm:ss"/>）
+                        <van-button type="danger" size="mini" :loading="item.payLoading||false" loading-text="支付中……" v-if="item.leftTime>0" @click="pay(item)">支付（剩余：<van-count-down :time="item.leftTime" @finish="finishTime(item)" format="mm:ss"/>）
                         </van-button>
                     </van-col>
                 </van-row>
