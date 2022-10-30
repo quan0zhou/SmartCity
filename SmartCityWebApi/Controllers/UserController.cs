@@ -148,7 +148,7 @@ namespace SmartCityWebApi.Controllers
             return this.Ok(new { status = result, msg });
         }
 
-        [HttpGet("Info/{userId:long}")]
+        [HttpGet("{userId:long}")]
         public async ValueTask<IActionResult> Info(long userId)
         {
             var model = await _userRepository.Info(userId);
@@ -160,7 +160,7 @@ namespace SmartCityWebApi.Controllers
             return this.Ok(new { status = true, data = model, pers });
         }
 
-        [HttpDelete("Delete/{userId:long}")]
+        [HttpDelete("{userId:long}")]
         public async ValueTask<IActionResult> Delete(long userId)
         {
             var (result, msg) = await _userRepository.Delete(userId);
