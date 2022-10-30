@@ -280,7 +280,7 @@ export default {
       this.isShowPwd = false
       this.title = '查看用户：' + row.userAccount
       this.visible = true
-      this.$http.get(`/user/info/${row.userId}`).then(res => {
+      this.$http.get(`/user/${row.userId}`).then(res => {
        if (res.status) {
          var model = Object.assign({}, res.data) || {}
          model.pers = model.isAdmin ? [2001, 2002, 3001, 3002, 4001] : (res.pers || [])
@@ -300,7 +300,7 @@ export default {
         okType: 'danger',
         content: h => <div style="color:red;">记录会永久删除</div>,
         onOk () {
-            $this.$http.delete(`/user/delete/${row.userId}`).then(res => {
+            $this.$http.delete(`/user/${row.userId}`).then(res => {
               if (res.status) {
                  $this.$message.success(res.msg, 3)
                  $this.$refs.table.refresh(true)
