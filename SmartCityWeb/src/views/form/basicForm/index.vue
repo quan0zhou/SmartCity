@@ -207,6 +207,7 @@ export default {
        this.tabList = res || []
        if (this.tabList.length > 0) {
         this.activeKey = this.tabList[0].date
+        this.refreshTag()
        }
       })
   }

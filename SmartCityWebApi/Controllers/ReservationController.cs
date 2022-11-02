@@ -48,7 +48,7 @@ namespace SmartCityWebApi.Controllers
 
                     });
                 }
-                tag.InitStatus(false);
+                tag.InitStatus(false,false);
                 data.Add(tag);
             }
 
@@ -86,7 +86,7 @@ namespace SmartCityWebApi.Controllers
 
                     });
                 }
-                tag.InitStatus(false);
+                tag.InitStatus(false,true);
             }
 
             return this.Ok(tag);

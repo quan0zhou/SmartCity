@@ -18,7 +18,7 @@ namespace SmartCityWebApi.Models
 
         public dynamic[] TimeArray { get; set; } = default!;
 
-        public void InitStatus(bool isLimitTime)
+        public void InitStatus(bool isLimitTime,bool initItems)
         {
 
             if (isLimitTime)
@@ -29,15 +29,24 @@ namespace SmartCityWebApi.Models
             {
                 this.Status = this.Items.Where(r => r.ReservationStatus == 1 && r.IsBooked == false && this.Date.Equals(r.ReservationDate)).Any() ? 1 : 0;
             }
-
-            this.SpaceArray = this.Items.GroupBy(r => r.SpaceName).OrderBy(r => r.Key).Select(r => r.Key).ToArray();
-            this.TimeArray = this.Items.GroupBy(r => new { r.StartTime, r.EndTime }).OrderBy(r => r.Key.StartTime).Select(r => new
+            if (initItems)
             {
-                r.Key.StartTime,
-                r.Key.EndTime,
-                StartTimeStr = r.Key.StartTime.ToString("HH:mm"),
-                EndTimeStr = r.Key.EndTime.ToString("HH:mm")
-            }).ToArray();
+                this.SpaceArray = this.Items.GroupBy(r => r.SpaceName).OrderBy(r => r.Key).Select(r => r.Key).ToArray();
+                this.TimeArray = this.Items.GroupBy(r => new { r.StartTime, r.EndTime }).OrderBy(r => r.Key.StartTime).Select(r => new
+                {
+                    r.Key.StartTime,
+                    r.Key.EndTime,
+                    StartTimeStr = r.Key.StartTime.ToString("HH:mm"),
+                    EndTimeStr = r.Key.EndTime.ToString("HH:mm")
+                }).ToArray();
+            }
+            else
+            {
+                this.SpaceArray = new string[] { };
+                this.TimeArray = new string[] { };
+                this.Items= new List<ReservationItem>();
+            }
+       
         }
 
 
