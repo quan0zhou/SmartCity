@@ -66,7 +66,7 @@ namespace SmartCityWebApi.Controllers.Mobile
 
                     });
                 }
-                tag.InitStatus(true);
+                tag.InitStatus(true, false);
                 data.Add(tag);
             }
             mobileResModel.Status = true;
@@ -107,7 +107,7 @@ namespace SmartCityWebApi.Controllers.Mobile
 
                     });
                 }
-                tag.InitStatus(true);
+                tag.InitStatus(true,true);
             }
             mobileResModel.Status = true;
             mobileResModel.Data = tag;
