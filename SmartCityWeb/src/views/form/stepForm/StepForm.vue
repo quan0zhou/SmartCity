@@ -75,12 +75,13 @@
       </div>
       <s-table
         ref="table"
-        size="default"
-        rowKey="key"
+        size="small"
+        rowKey="orderId"
         :columns="columns"
         :data="loadData"
+        :pageSize="20"
         showPagination="auto"
-        :scroll="{ x: 2000 }"
+        :scroll="{ x: 1600 }"
       >
 
         <span slot="spaceType" slot-scope="text">
@@ -360,12 +361,12 @@ const columns = [
     dataIndex: 'reservationUserPhone',
     key: 'reservationUserPhone'
   },
-  {
-    title: '微信openId',
-     align: 'center',
-    dataIndex: 'openId',
-    key: 'openId'
-  },
+  // {
+  //   title: '微信openId',
+  //    align: 'center',
+  //   dataIndex: 'openId',
+  //   key: 'openId'
+  // },
     {
     title: '支付时间',
     width: '160px',
@@ -373,27 +374,29 @@ const columns = [
     dataIndex: 'payTime',
     key: 'payTime'
   },
-  {
-    title: '商户订单号',
-    dataIndex: 'orderNo',
-     align: 'center',
-    key: 'orderNo'
-  },
-  {
-    title: '交易订单号',
-    dataIndex: 'paymentNo',
-     align: 'center',
-    key: 'paymentNo'
-  },
+  // {
+  //   title: '商户订单号',
+  //   dataIndex: 'orderNo',
+  //    align: 'center',
+  //   key: 'orderNo'
+  // },
+  // {
+  //   title: '交易订单号',
+  //   dataIndex: 'paymentNo',
+  //    align: 'center',
+  //   key: 'paymentNo'
+  // },
   {
     title: '退款(或拒绝)时间',
-     align: 'center',
+    align: 'center',
+    width: '160px',
     dataIndex: 'refundTime',
     key: 'refundTime'
   },
   {
     title: '退款(或拒绝)操作人',
-     align: 'center',
+    align: 'center',
+    width: '160px',
     dataIndex: 'refundOptUser',
     key: 'refundOptUser'
   },
@@ -431,6 +434,9 @@ export default {
   data () {
     this.columns = columns
     return {
+      pagination: {
+           defaultPageSize: 20
+      },
       form: {},
       visible: false,
       title: '',
@@ -596,6 +602,14 @@ export default {
     width: calc((100% - 23px) / 2);
   }
 }
+// .table-wrapper{
+//  /deep/ th{
+//     padding: 5px;
+//   }
+//   /deep/ td{
+//     padding: 5px;
+//   }
+// }
 .detailOrderModal{
   /deep/ .ant-form-item-label{
     width: 135px;

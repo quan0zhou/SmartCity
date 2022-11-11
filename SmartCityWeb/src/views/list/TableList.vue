@@ -43,7 +43,7 @@
       <s-table
         ref="table"
         size="default"
-        rowKey="key"
+        rowKey="spaceId"
         :columns="columns"
         :data="loadData"
         showPagination="auto"

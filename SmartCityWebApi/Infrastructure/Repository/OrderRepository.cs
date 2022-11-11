@@ -21,8 +21,8 @@ namespace SmartCityWebApi.Infrastructure.Repository
 
         public async ValueTask<(long, long, decimal, decimal)> Report()
         {
-            Expression<Func<Order, bool>> filter1 = r => r.OrderStatus == (int)OrderStatusEnum.Booked && r.CreateTime.Date == DateTime.Now.Date;
-            Expression<Func<Order, bool>> filter2 = r => r.OrderStatus == (int)OrderStatusEnum.Refunded && r.CreateTime.Date == DateTime.Now.Date;
+            Expression<Func<Order, bool>> filter1 = r => r.OrderStatus == (int)OrderStatusEnum.Booked && r.UpdateTime.Date == DateTime.Now.Date;
+            Expression<Func<Order, bool>> filter2 = r => r.OrderStatus == (int)OrderStatusEnum.Refunded && r.UpdateTime.Date == DateTime.Now.Date;
 
             var query1 = await _smartCityContext.Orders.AsNoTracking().Where(filter1).GroupBy(_ => 1).Select(r => new { Count = r.LongCount(), Money = r.Sum(p => p.Money) }).FirstOrDefaultAsync();
             var query2 = await _smartCityContext.Orders.AsNoTracking().Where(filter2).GroupBy(_ => 1).Select(r => new { Count = r.LongCount(), Money = r.Sum(p => p.Money) }).FirstOrDefaultAsync();
@@ -65,7 +65,7 @@ namespace SmartCityWebApi.Infrastructure.Repository
                 query = query.Where(r => r.ReservationUserPhone.Contains(userPhone));
             }
             var count = await query.CountAsync();
-            var list = await query.OrderByDescending(r => r.UpdateTime).Skip(pageSize * (pageNo - 1)).Take(pageSize).Select(r => new
+            var list = await query.OrderByDescending(r => r.ReservationDate).ThenBy(r=>r.StartTime).Skip(pageSize * (pageNo - 1)).Take(pageSize).Select(r => new
             {
                 OrderId = r.OrderId.ToString(),
                 r.OrderNo,
@@ -128,7 +128,7 @@ namespace SmartCityWebApi.Infrastructure.Repository
                 query = query.Where(r => r.ReservationUserPhone.Contains(userPhone));
             }
             var count = await query.CountAsync();
-            var list = await query.OrderByDescending(r => r.UpdateTime).Select(r => new OrderModel
+            var list = await query.OrderByDescending(r => r.ReservationDate).ThenBy(r => r.StartTime).Select(r => new OrderModel
             {
                 OrderNo = r.OrderNo,
                 PaymentNo = r.PaymentNo,
