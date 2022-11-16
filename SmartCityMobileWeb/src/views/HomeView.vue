@@ -45,18 +45,21 @@ const checkItem=(item:any)=>{
    }
 }
 
-const changeTab=async (name:string)=>{
+const changeTab= async (name:string)=>{
   const loadingToast=Toast.loading({
     message: '加载中...',
     forbidClick: true,
     loadingType: 'spinner',
     })
    var newTag=(await getTag(name)).data
-   loadingToast.clear()
    var currentTag=ref(tagList.value?.find((tag:any)=>{
        return tag.date==activeName.value
    }))
-   Object.assign(currentTag.value,newTag)
+   currentTag.value.status=newTag.status
+   currentTag.value.spaceArray=newTag.spaceArray
+   currentTag.value.timeArray=newTag.timeArray
+   currentTag.value.items=newTag.items
+   loadingToast.clear()
 }
 const currentItem=computed(()=>{
   var currentTag=  tagList.value?.find((tag:any)=>{
@@ -78,7 +81,8 @@ const currentItem=computed(()=>{
   left-icon="volume-o"
   text="12小时内场地不可取消"
 />
-<van-tabs v-model:active="activeName" type="card"  @change="changeTab">
+
+<van-tabs v-model:active="activeName" type="card"  @change="changeTab" >
   <van-tab v-for="tag in tagList" :key="tag.date" :name="tag.date">
     <template #title> 
       <div>
