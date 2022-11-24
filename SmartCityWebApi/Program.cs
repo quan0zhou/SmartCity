@@ -13,6 +13,7 @@ using SmartCityWebApi.Domain.IRepository;
 using SmartCityWebApi.Extensions;
 using SmartCityWebApi.Infrastructure;
 using SmartCityWebApi.Infrastructure.Repository;
+using SmartCityWebApi.Models;
 using StackExchange.Redis;
 using System.Net;
 using System.Text;
@@ -34,6 +35,7 @@ builder.Services.AddControllers().AddJsonOptions(options => {
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+builder.Services.Configure<Setting>(builder.Configuration.GetSection("Setting"));
 //×¢Èësql
 string connectionString = builder.Configuration.GetConnectionString("SmartCityContext");
 builder.Services.AddDbContext<SmartCityContext>(

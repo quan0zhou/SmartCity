@@ -2,6 +2,7 @@
 using Medallion.Threading;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.Extensions.Options;
 using Microsoft.VisualBasic;
 using Newtonsoft.Json;
 using OfficeOpenXml.FormulaParsing.Excel.Functions.Numeric;
@@ -30,19 +31,20 @@ namespace SmartCityWebApi.Controllers.Mobile
         private readonly IDistributedLockProvider _synchronizationProvider;
         private readonly ICustSpaceRepository _custSpaceRepository;
         private readonly IdGenerator _idGenerator;
-        private readonly IConfiguration _configuration;
+        private readonly Setting _setting;
         private readonly ILogger<OrderController> _logger;
 
-        public OrderController(IOrderRepository orderRepository, IReservationRepository reservationRepository, IDistributedLockProvider synchronizationProvider, ICustSpaceRepository custSpaceRepository, IConfiguration configuration, ILogger<OrderController> logger, IdGenerator idGenerator)
+        public OrderController(IOrderRepository orderRepository, IReservationRepository reservationRepository, IDistributedLockProvider synchronizationProvider, ICustSpaceRepository custSpaceRepository, IOptionsSnapshot<Setting> setting, ILogger<OrderController> logger, IdGenerator idGenerator)
         {
             _orderRepository = orderRepository;
             _reservationRepository = reservationRepository;
             _synchronizationProvider = synchronizationProvider;
             _custSpaceRepository = custSpaceRepository;
             _idGenerator = idGenerator;
-            _configuration = configuration;
+            _setting = setting.Value;
             _logger = logger;
         }
+
 
         [HttpGet("List/{id:long}/{openId}/{status:int?}")]
         public async ValueTask<MobileResModel> List(long id, string openId, int? status)
@@ -114,9 +116,9 @@ namespace SmartCityWebApi.Controllers.Mobile
                             return mobileResModel;
                         }
                         var now = DateTime.Now;
-                        var startTime = Convert.ToDateTime("09:00");
+                        var startTime = Convert.ToDateTime(_setting.LimitTimeOfDay);
                         var endTime = Convert.ToDateTime("00:00").AddDays(1);
-                        if (now.ToWeekName() == "星期一" && now >= startTime)
+                        if (now.ToWeekName() == _setting.LimitWeekName && now >= startTime)
                         {
                             if (await _orderRepository.LimitOrder(orderPayViewModel.OpenId, startTime, endTime))
                             {
@@ -153,7 +155,7 @@ namespace SmartCityWebApi.Controllers.Mobile
                             SubMerchantId = spaceSetting.SubMchID,
                             Description = reservation.SpaceName + $"-{reservation.ReservationDate}({reservation.StartTime.ToString("HH:ss")}~{reservation.EndTime.ToString("HH:ss")})",
                             ExpireTime = DateTimeOffset.Now.AddMinutes(5),
-                            NotifyUrl = _configuration["NotifyUrl"],
+                            NotifyUrl = _setting.NotifyUrl,
                             Amount = new CreatePayPartnerTransactionJsapiRequest.Types.Amount
                             {
                                 Total = (int)(reservation.Money * 100)
@@ -474,7 +476,7 @@ namespace SmartCityWebApi.Controllers.Mobile
                     SubMerchantId = spaceSetting.SubMchID,
                     Description = order.SpaceName + $"-{order.ReservationDate}({order.StartTime.ToString("HH:ss")}~{order.EndTime.ToString("HH:ss")})",
                     ExpireTime = DateTimeOffset.Now.AddMinutes(5),
-                    NotifyUrl = _configuration["NotifyUrl"],
+                    NotifyUrl = _setting.NotifyUrl,
                     Amount = new CreatePayPartnerTransactionJsapiRequest.Types.Amount
                     {
                         Total = (int)(order.Money * 100)

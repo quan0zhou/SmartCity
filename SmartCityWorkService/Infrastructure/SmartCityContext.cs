@@ -16,12 +16,12 @@ namespace SmartCityWorkService.Infrastructure
 
         }
 
-        public DbSet<CustSpace> CustSpaces { get; set; }
-        public DbSet<CustSpaceSetting> CustSpaceSettings { get; set; }
+        public DbSet<CustSpace> CustSpaces => Set<CustSpace>();
+        public DbSet<CustSpaceSetting> CustSpaceSettings => Set<CustSpaceSetting>();
 
-        public DbSet<Reservation> Reservations { get; set; }
+        public DbSet<Reservation> Reservations => Set<Reservation>();
 
-        public DbSet<Order> Orders { get; set; }
+        public DbSet<Order> Orders => Set<Order>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
