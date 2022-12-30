@@ -199,6 +199,7 @@ export default {
        this.loading4 = false
        this.spinning = false
        this.tabList = res || []
+       this.refreshTag()
       })
     }
   },

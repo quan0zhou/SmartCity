@@ -45,7 +45,8 @@ namespace SmartCityWebApi.Controllers
             orderPageViewModel.UserPhone = (orderPageViewModel.UserPhone ?? "").Trim();
             orderPageViewModel.PageSize = orderPageViewModel.PageSize <= 10 ? 10 : orderPageViewModel.PageSize;
             orderPageViewModel.PageNo = orderPageViewModel.PageNo <= 1 ? 1 : orderPageViewModel.PageNo;
-            var (list, count) = await _orderRepository.OrderPageList(orderPageViewModel.SpaceType, orderPageViewModel.SpaceId, orderPageViewModel.Status, orderPageViewModel.StartDate, orderPageViewModel.EndDate, orderPageViewModel.StartTime, orderPageViewModel.EndTime, orderPageViewModel.UserName, orderPageViewModel.UserPhone, orderPageViewModel.PageNo, orderPageViewModel.PageSize);
+            
+            var (list, count) = await _orderRepository.OrderPageList(this.CurrentUser.IsAdmin,orderPageViewModel.SpaceType, orderPageViewModel.SpaceId, orderPageViewModel.Status, orderPageViewModel.StartDate, orderPageViewModel.EndDate, orderPageViewModel.StartTime, orderPageViewModel.EndTime, orderPageViewModel.UserName, orderPageViewModel.UserPhone, orderPageViewModel.PageNo, orderPageViewModel.PageSize);
             return this.Ok(new { data = list, pageSize = orderPageViewModel.PageSize, pageNo = orderPageViewModel.PageNo, totalPage = count / orderPageViewModel.PageSize, totalCount = count });
         }
 
@@ -130,7 +131,7 @@ namespace SmartCityWebApi.Controllers
             orderViewModel = orderViewModel ?? new OrderPageViewModel();
             orderViewModel.UserName = (orderViewModel.UserName ?? "").Trim();
             orderViewModel.UserPhone = (orderViewModel.UserPhone ?? "").Trim();
-            var list = await _orderRepository.OrderList(orderViewModel.SpaceType, orderViewModel.SpaceId, orderViewModel.Status, orderViewModel.StartDate, orderViewModel.EndDate, orderViewModel.StartTime, orderViewModel.EndTime, orderViewModel.UserName, orderViewModel.UserPhone);
+            var list = await _orderRepository.OrderList(this.CurrentUser.IsAdmin,orderViewModel.SpaceType, orderViewModel.SpaceId, orderViewModel.Status, orderViewModel.StartDate, orderViewModel.EndDate, orderViewModel.StartTime, orderViewModel.EndTime, orderViewModel.UserName, orderViewModel.UserPhone);
             var bytes = await _excelExporter.ExportAsByteArray(list);
             string contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
             var memoryStream = new MemoryStream(bytes);

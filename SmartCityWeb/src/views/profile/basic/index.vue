@@ -256,7 +256,7 @@ export default {
       this.isShowPwd = false
       this.title = '编辑用户：' + row.userAccount
       this.visible = true
-      this.$http.get(`/user/info/${row.userId}`).then(res => {
+      this.$http.get(`/user/${row.userId}`).then(res => {
        if (res.status) {
          var model = Object.assign({}, res.data) || {}
          model.pers = model.isAdmin ? [2001, 2002, 3001, 3002, 4001] : (res.pers || [])

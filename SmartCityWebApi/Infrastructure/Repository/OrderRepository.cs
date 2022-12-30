@@ -29,7 +29,7 @@ namespace SmartCityWebApi.Infrastructure.Repository
             return (query1?.Count ?? 0, query2?.Count ?? 0, query1?.Money ?? 0, query2?.Money ?? 0);
         }
 
-        public async ValueTask<(IEnumerable<dynamic>, int)> OrderPageList(int? spaceType, long? spaceId, int? status, DateOnly? startDate, DateOnly? endDate, int? startTime, int? endTime, string userName, string userPhone, int pageNo, int pageSize)
+        public async ValueTask<(IEnumerable<dynamic>, int)> OrderPageList(bool isAdmin, int? spaceType, long? spaceId, int? status, DateOnly? startDate, DateOnly? endDate, int? startTime, int? endTime, string userName, string userPhone, int pageNo, int pageSize)
         {
             var query = _smartCityContext.Orders.AsNoTracking();
             if (spaceType.HasValue)
@@ -63,6 +63,10 @@ namespace SmartCityWebApi.Infrastructure.Repository
             if (!string.IsNullOrWhiteSpace(userPhone))
             {
                 query = query.Where(r => r.ReservationUserPhone.Contains(userPhone));
+            }
+            if (!isAdmin)
+            {
+                query = query.Where(r => r.CreateTime >= DateTime.Now.AddDays(-14).Date);
             }
             var count = await query.CountAsync();
             var list = await query.OrderByDescending(r => r.ReservationDate).ThenBy(r=>r.StartTime).Skip(pageSize * (pageNo - 1)).Take(pageSize).Select(r => new
@@ -92,7 +96,7 @@ namespace SmartCityWebApi.Infrastructure.Repository
             return (list, count);
         }
 
-        public async ValueTask<List<OrderModel>> OrderList(int? spaceType, long? spaceId, int? status, DateOnly? startDate, DateOnly? endDate, int? startTime, int? endTime, string userName, string userPhone)
+        public async ValueTask<List<OrderModel>> OrderList(bool isAdmin,int? spaceType, long? spaceId, int? status, DateOnly? startDate, DateOnly? endDate, int? startTime, int? endTime, string userName, string userPhone)
         {
             var query = _smartCityContext.Orders.AsNoTracking();
             if (spaceType.HasValue)
@@ -127,7 +131,10 @@ namespace SmartCityWebApi.Infrastructure.Repository
             {
                 query = query.Where(r => r.ReservationUserPhone.Contains(userPhone));
             }
-            var count = await query.CountAsync();
+            if (!isAdmin)
+            {
+                query = query.Where(r => r.CreateTime >= DateTime.Now.AddDays(-14).Date);
+            }
             var list = await query.OrderByDescending(r => r.ReservationDate).ThenBy(r => r.StartTime).Select(r => new OrderModel
             {
                 OrderNo = r.OrderNo,

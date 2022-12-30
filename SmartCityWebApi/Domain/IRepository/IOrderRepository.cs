@@ -7,9 +7,9 @@ namespace SmartCityWebApi.Domain.IRepository
 
         ValueTask<(long, long, decimal, decimal)> Report();
 
-        ValueTask<(IEnumerable<dynamic>, int)> OrderPageList(int? spaceType, long? spaceId, int? status, DateOnly? startDate, DateOnly? endDate, int? startTime, int? endTime, string userName, string userPhone, int pageNo, int pageSize);
+        ValueTask<(IEnumerable<dynamic>, int)> OrderPageList(bool isAdmin,int? spaceType, long? spaceId, int? status, DateOnly? startDate, DateOnly? endDate, int? startTime, int? endTime, string userName, string userPhone, int pageNo, int pageSize);
 
-        ValueTask<List<OrderModel>> OrderList(int? spaceType, long? spaceId, int? status, DateOnly? startDate, DateOnly? endDate, int? startTime, int? endTime, string userName, string userPhone);
+        ValueTask<List<OrderModel>> OrderList(bool isAdmin,int? spaceType, long? spaceId, int? status, DateOnly? startDate, DateOnly? endDate, int? startTime, int? endTime, string userName, string userPhone);
 
         ValueTask<IEnumerable<dynamic>> OrderList(long id,string openId, int? status);
         ValueTask<dynamic?> OrderInfo(long id);

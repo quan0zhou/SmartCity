@@ -71,7 +71,7 @@
         </a-form>
       </div>
       <div class="table-operator">
-        <a-button type="primary" icon="download" @click="handleExport" :loading="exportLoading">导出</a-button>
+        <a-button type="primary" v-if="userInfo.isAdmin" icon="download" @click="handleExport" :loading="exportLoading">导出</a-button>
       </div>
       <s-table
         ref="table"
@@ -302,6 +302,7 @@
 
 <script>
 import { STable } from '@/components'
+import { mapGetters } from 'vuex'
 const columns = [
   {
     title: '最后操作时间',
@@ -577,6 +578,12 @@ export default {
          }
        })
     }
+  },
+   computed: {
+       ...mapGetters(['userInfo'])
+  },
+  mounted () {
+
   },
   created () {
     for (let i = 7; i <= 21; i++) {
