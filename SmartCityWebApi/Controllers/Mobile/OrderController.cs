@@ -89,10 +89,10 @@ namespace SmartCityWebApi.Controllers.Mobile
         {
             MobileResModel mobileResModel = new MobileResModel();
             orderPayViewModel.UserName = (orderPayViewModel.UserName ?? string.Empty).Trim();
-            orderPayViewModel.UserPhone = (orderPayViewModel.UserPhone ?? string.Empty).Trim();      
+            orderPayViewModel.UserPhone = (orderPayViewModel.UserPhone ?? string.Empty).Trim();
             try
             {
-                await using (var handle = await _synchronizationProvider.TryAcquireLockAsync($"Reservation{orderPayViewModel.ReservationId}"))
+                await using (var handle = await _synchronizationProvider.TryAcquireLockAsync($"Reservation:{orderPayViewModel.ReservationId}"))
                 {
                     if (handle != null)
                     {
@@ -103,7 +103,7 @@ namespace SmartCityWebApi.Controllers.Mobile
                             mobileResModel.Msg = "该预订记录不存在";
                             return mobileResModel;
                         }
-                        if (reservation.IsBooked)
+                        if (reservation.IsBooked || reservation.ReservationStatus != 1)
                         {
                             mobileResModel.Status = false;
                             mobileResModel.Msg = "该场地所选时间段已预订";
@@ -261,7 +261,7 @@ namespace SmartCityWebApi.Controllers.Mobile
         {
             using var reader = new StreamReader(Request.Body, Encoding.UTF8);
             string content = await reader.ReadToEndAsync();
-            _logger.LogInformation("接收到微信支付推送的数据：{0}", content);
+            _logger.LogInformation("接收到微信支付推送的原数据：{0}", content);
             if (string.IsNullOrEmpty(content))
             {
                 return new JsonResult(new { code = "FAIL", message = "接收参数为空" });
@@ -287,18 +287,27 @@ namespace SmartCityWebApi.Controllers.Mobile
                 {
                     return new JsonResult(new { code = "FAIL", message = "参数转换失败" });
                 }
+                _logger.LogInformation("接收到微信支付推送的解析后数据：{0}", wechatTenpayEvent);
                 var partnerTransactionResource = client.DecryptEventResource<PartnerTransactionResource>(wechatTenpayEvent);
                 if (partnerTransactionResource.TradeState == "SUCCESS")
                 {
-                    if (await _orderRepository.OrderFinished(partnerTransactionResource.OutTradeNumber, partnerTransactionResource.TransactionId))
+                    await using (var handle = await _synchronizationProvider.TryAcquireLockAsync($"NotifyOrder:{partnerTransactionResource.OutTradeNumber}"))
                     {
-                        return new JsonResult(new { code = "SUCCESS", message = "成功" });
+                        if (handle == null)
+                        {
+                            return new JsonResult(new { code = "FAIL", message = "重复请求" });
+                        }
+                        if (await _orderRepository.OrderFinished(partnerTransactionResource.OutTradeNumber, partnerTransactionResource.TransactionId))
+                        {
+                            return new JsonResult(new { code = "SUCCESS", message = "成功" });
+                        }
+                        else
+                        {
+                            _logger.LogWarning($"订单信息：{JsonConvert.SerializeObject(partnerTransactionResource)}，处理失败");
+                            return new JsonResult(new { code = "FAIL", message = "订单业务数据处理失败" });
+                        }
                     }
-                    else
-                    {
-                        _logger.LogWarning($"订单信息：{JsonConvert.SerializeObject(partnerTransactionResource)}，处理失败");
-                        return new JsonResult(new { code = "FAIL", message = "订单业务数据处理失败" });
-                    }
+
                 }
 
             }
@@ -318,108 +327,132 @@ namespace SmartCityWebApi.Controllers.Mobile
         public async ValueTask<MobileResModel> Refund(long id)
         {
             MobileResModel mobileResModel = new MobileResModel();
-            var order = await _orderRepository.DomainOrderInfo(id);
-            if (order == null)
+            await using (var handle = await _synchronizationProvider.TryAcquireLockAsync($"Refund:{id}"))
             {
-                mobileResModel.Status = false;
-                mobileResModel.Msg = "该订单不存在";
-                return mobileResModel;
-            }
-            if ((int)order.OrderStatus != (int)OrderStatusEnum.Booked)
-            {
-                mobileResModel.Status = false;
-                mobileResModel.Msg = "该订单状态无法退款";
-                return mobileResModel;
-            }
-            if (order.StartTime <= DateTime.Now)
-            {
-                mobileResModel.Status = false;
-                mobileResModel.Msg = "该场地活动已开始,无法退款";
-                return mobileResModel;
-            }
-            var spaceSetting = await _custSpaceRepository.GetCustSpaceSettingInfo();
-            if (spaceSetting == null)
-            {
-                mobileResModel.Status = false;
-                mobileResModel.Msg = "微信支付配置参数为空";
-                return mobileResModel;
-            }
-            if ((order.StartTime - DateTime.Now).TotalHours > (spaceSetting?.DirectRefundPeriod ?? 12))
-            {
-                var options = new WechatTenpayClientOptions()
+                if (handle == null)
                 {
-                    MerchantId = spaceSetting!.MchID,
-                    MerchantV3Secret = spaceSetting.AppKey,
-                    MerchantCertificateSerialNumber = spaceSetting.CertificateSerialNumber,
-                    MerchantCertificatePrivateKey = spaceSetting.CertificatePrivateKey,
-                    PlatformCertificateManager = new InMemoryCertificateManager()
-                };
-                var request = new CreateRefundDomesticRefundRequest()
+                    mobileResModel.Status = false;
+                    mobileResModel.Msg = "请勿重复退款";
+                    return mobileResModel;
+                }
+                var order = await _orderRepository.DomainOrderInfo(id);
+                if (order == null)
                 {
-                    OutTradeNumber = order.OrderNo,
-                    OutRefundNumber = order.OrderNo,
-                    SubMerchantId = spaceSetting!.SubMchID,
-                    Amount = new CreateRefundDomesticRefundRequest.Types.Amount()
+                    mobileResModel.Status = false;
+                    mobileResModel.Msg = "该订单不存在";
+                    return mobileResModel;
+                }
+                if ((int)order.OrderStatus != (int)OrderStatusEnum.Booked)
+                {
+                    mobileResModel.Status = false;
+                    mobileResModel.Msg = "该订单状态无法退款";
+                    return mobileResModel;
+                }
+                if (order.StartTime <= DateTime.Now)
+                {
+                    mobileResModel.Status = false;
+                    mobileResModel.Msg = "该场地活动已开始,无法退款";
+                    return mobileResModel;
+                }
+                var reservation = await _reservationRepository.ReservationInfo(order.ReservationId);
+                if (reservation == null)
+                {
+                    mobileResModel.Status = false;
+                    mobileResModel.Msg = "该预订记录不存在";
+                    return mobileResModel;
+                }
+                if (reservation.StartTime < DateTime.Now)
+                {
+                    mobileResModel.Status = false;
+                    mobileResModel.Msg = "该场地所选时间段活动已开始";
+                    return mobileResModel;
+                }
+                var spaceSetting = await _custSpaceRepository.GetCustSpaceSettingInfo();
+                if (spaceSetting == null)
+                {
+                    mobileResModel.Status = false;
+                    mobileResModel.Msg = "微信支付配置参数为空";
+                    return mobileResModel;
+                }
+                if ((order.StartTime - DateTime.Now).TotalHours > (spaceSetting?.DirectRefundPeriod ?? 12))
+                {
+                    var options = new WechatTenpayClientOptions()
                     {
-                        Total = (int)(order.Money * 100),
-                        Refund = (int)(order.Money * 100)
-                    },
-                    Reason = "用户申请退款"
-                };
-                try
-                {
-                    var client = new WechatTenpayClient(options);
-                    var response = await client.ExecuteCreateRefundDomesticRefundAsync(request, cancellationToken: HttpContext.RequestAborted);
-                    if (response.IsSuccessful())
+                        MerchantId = spaceSetting!.MchID,
+                        MerchantV3Secret = spaceSetting.AppKey,
+                        MerchantCertificateSerialNumber = spaceSetting.CertificateSerialNumber,
+                        MerchantCertificatePrivateKey = spaceSetting.CertificatePrivateKey,
+                        PlatformCertificateManager = new InMemoryCertificateManager()
+                    };
+                    var request = new CreateRefundDomesticRefundRequest()
                     {
-                        _logger.LogInformation($"订单信息：{JsonConvert.SerializeObject(order)}，微信支付退款返回结果：{JsonConvert.SerializeObject(response)}");
-                        DateTime refundTime = DateTime.UtcNow;
-                        if (response.SuccessTime.HasValue)
+                        OutTradeNumber = order.OrderNo,
+                        OutRefundNumber = order.OrderNo,
+                        SubMerchantId = spaceSetting!.SubMchID,
+                        Amount = new CreateRefundDomesticRefundRequest.Types.Amount()
                         {
-                            refundTime = response.SuccessTime.Value.UtcDateTime;
-                        }
-                        _logger.LogInformation($"订单退款时间：{refundTime}");
-                        if (!await _orderRepository.RefundByConsumer(id, order.ReservationId, refundTime))
+                            Total = (int)(order.Money * 100),
+                            Refund = (int)(order.Money * 100)
+                        },
+                        Reason = "用户申请退款"
+                    };
+                    try
+                    {
+                        var client = new WechatTenpayClient(options);
+                        var response = await client.ExecuteCreateRefundDomesticRefundAsync(request, cancellationToken: HttpContext.RequestAborted);
+                        if (response.IsSuccessful())
                         {
-                            _logger.LogWarning($"订单信息：{JsonConvert.SerializeObject(order)}，反馈结果：{JsonConvert.SerializeObject(response)}，处理退款失败");
+                            _logger.LogInformation($"订单信息：{JsonConvert.SerializeObject(order)}，微信支付退款返回结果：{JsonConvert.SerializeObject(response)}");
+                            DateTime refundTime = DateTime.UtcNow;
+                            if (response.SuccessTime.HasValue)
+                            {
+                                refundTime = response.SuccessTime.Value.UtcDateTime;
+                            }
+                            _logger.LogInformation($"订单退款时间：{refundTime}");
+                            if (!await _orderRepository.RefundByConsumer(id, order.ReservationId, refundTime))
+                            {
+                                _logger.LogWarning($"订单信息：{JsonConvert.SerializeObject(order)}，反馈结果：{JsonConvert.SerializeObject(response)}，处理退款失败");
 
+                            }
+                            mobileResModel.Status = true;
+                            mobileResModel.Msg = "退款成功";
+                            return mobileResModel;
                         }
+                        else
+                        {
+                            mobileResModel.Status = false;
+                            mobileResModel.Msg = "退款失败:" + response.ErrorMessage;
+                            return mobileResModel;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "处理微信支付退款异常");
+                        mobileResModel.Status = false;
+                        mobileResModel.Msg = "退款失败,服务器处理异常";
+                        return mobileResModel;
+                    }
+
+                }
+                else
+                {
+                    if (await _orderRepository.RefundByConsumer(id, order.ReservationId, null))
+                    {
+
                         mobileResModel.Status = true;
-                        mobileResModel.Msg = "退款成功";
+                        mobileResModel.Msg = "退款成功，待审核";
                         return mobileResModel;
                     }
                     else
                     {
                         mobileResModel.Status = false;
-                        mobileResModel.Msg = "退款失败:" + response.ErrorMessage;
+                        mobileResModel.Msg = "退款失败";
                         return mobileResModel;
                     }
                 }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "处理微信支付退款异常");
-                    mobileResModel.Status = false;
-                    mobileResModel.Msg = "退款失败,服务器处理异常";
-                    return mobileResModel;
-                }
-
             }
-            else
-            {
-                if (await _orderRepository.RefundByConsumer(id, order.ReservationId, null))
-                {
 
-                    mobileResModel.Status = true;
-                    mobileResModel.Msg = "退款成功，待审核";
-                    return mobileResModel;
-                }
-                else
-                {
-                    mobileResModel.Status = false;
-                    mobileResModel.Msg = "退款失败";
-                    return mobileResModel;
-                }
-            }
+
 
         }
 
@@ -440,10 +473,10 @@ namespace SmartCityWebApi.Controllers.Mobile
                 mobileResModel.Msg = "该订单状态无法支付";
                 return mobileResModel;
             }
-            if (order.CreateTime.AddMinutes(5) < DateTime.Now)
+            if ((DateTime.Now - order.CreateTime).TotalMinutes > 5)
             {
                 mobileResModel.Status = false;
-                mobileResModel.Msg = "该场地活动已开始,无法退款";
+                mobileResModel.Msg = "该订单已取消,无法支付";
                 return mobileResModel;
             }
             var spaceSetting = await _custSpaceRepository.GetCustSpaceSettingInfo();

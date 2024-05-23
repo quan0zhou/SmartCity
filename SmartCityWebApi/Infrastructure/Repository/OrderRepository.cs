@@ -69,7 +69,7 @@ namespace SmartCityWebApi.Infrastructure.Repository
                 query = query.Where(r => r.CreateTime >= DateTime.Now.AddDays(-14).Date);
             }
             var count = await query.CountAsync();
-            var list = await query.OrderByDescending(r => r.ReservationDate).ThenBy(r=>r.StartTime).Skip(pageSize * (pageNo - 1)).Take(pageSize).Select(r => new
+            var list = await query.OrderByDescending(r => r.ReservationDate).ThenBy(r => r.StartTime).Skip(pageSize * (pageNo - 1)).Take(pageSize).Select(r => new
             {
                 OrderId = r.OrderId.ToString(),
                 r.OrderNo,
@@ -96,7 +96,7 @@ namespace SmartCityWebApi.Infrastructure.Repository
             return (list, count);
         }
 
-        public async ValueTask<List<OrderModel>> OrderList(bool isAdmin,int? spaceType, long? spaceId, int? status, DateOnly? startDate, DateOnly? endDate, int? startTime, int? endTime, string userName, string userPhone)
+        public async ValueTask<List<OrderModel>> OrderList(bool isAdmin, int? spaceType, long? spaceId, int? status, DateOnly? startDate, DateOnly? endDate, int? startTime, int? endTime, string userName, string userPhone)
         {
             var query = _smartCityContext.Orders.AsNoTracking();
             if (spaceType.HasValue)
@@ -161,7 +161,7 @@ namespace SmartCityWebApi.Infrastructure.Repository
 
         public async ValueTask<IEnumerable<dynamic>> OrderList(long id, string openId, int? status)
         {
-            var query = _smartCityContext.Orders.AsNoTracking().Where(r=>r.OpenId.Equals(openId));
+            var query = _smartCityContext.Orders.AsNoTracking().Where(r => r.OpenId.Equals(openId));
             if (id > 0)
             {
                 query = query.Where(r => r.OrderId < id);
@@ -285,13 +285,13 @@ namespace SmartCityWebApi.Infrastructure.Repository
 
             if (result)
             {
-                var updateResult= await _smartCityContext.Database.ExecuteSqlInterpolatedAsync($"UPDATE \"reservation\" SET \"IsBooked\"={false}  WHERE \"ReservationId\"={model.ReservationId}")>0;
+                var updateResult = await _smartCityContext.Database.ExecuteSqlInterpolatedAsync($"UPDATE \"reservation\" SET \"IsBooked\"={false}  WHERE \"ReservationId\"={model.ReservationId}") > 0;
                 model.RefundTime = DateTime.Now;
                 model.RefundOptUser = updateUser;
                 model.OrderStatus = (int)OrderStatusEnum.Refunded;
                 model.RefundRemark = remark;
                 result = await _smartCityContext.SaveChangesAsync() > 0;
-                msg = result&& updateResult ? "退款成功" : "退款失败";
+                msg = result && updateResult ? "退款成功" : "退款失败";
             }
 
             return (result, msg);
@@ -301,15 +301,15 @@ namespace SmartCityWebApi.Infrastructure.Repository
         public async ValueTask<bool> OrderFinished(string orderNo, string paymentNo)
         {
             var order = _smartCityContext.Orders.Where(r => r.OrderNo.Equals(orderNo)).FirstOrDefault();
-            if (order == null)
+            if (order != null && order.OrderStatus == 0)
             {
-                return false;
+                order.PaymentNo = paymentNo;
+                order.PayTime = DateTime.Now;
+                order.OrderStatus = (int)OrderStatusEnum.Booked;
+                order.UpdateTime = DateTime.Now;
+                return await _smartCityContext.SaveChangesAsync() > 0;
             }
-            order.PaymentNo = paymentNo;
-            order.PayTime = DateTime.Now;
-            order.OrderStatus = (int)OrderStatusEnum.Booked;
-            order.UpdateTime = DateTime.Now;
-            return await _smartCityContext.SaveChangesAsync() > 0;
+            return true;
         }
 
         public async ValueTask<(bool, string)> Remove(long id)
@@ -334,11 +334,11 @@ namespace SmartCityWebApi.Infrastructure.Repository
         }
 
 
-        public async ValueTask<bool> RefundByConsumer(long id,long reservationId, DateTime? refundTime) 
+        public async ValueTask<bool> RefundByConsumer(long id, long reservationId, DateTime? refundTime)
         {
             if (refundTime.HasValue)
             {
-                var result= await _smartCityContext.Database.ExecuteSqlInterpolatedAsync($"UPDATE \"order\" SET \"UpdateTime\"=now(),\"OrderStatus\"={(int)OrderStatusEnum.Refunded},\"RefundTime\"={refundTime.Value} WHERE \"OrderId\"={id}") > 0;
+                var result = await _smartCityContext.Database.ExecuteSqlInterpolatedAsync($"UPDATE \"order\" SET \"UpdateTime\"=now(),\"OrderStatus\"={(int)OrderStatusEnum.Refunded},\"RefundTime\"={refundTime.Value} WHERE \"OrderId\"={id}") > 0;
                 if (result)
                 {
                     await _smartCityContext.Database.ExecuteSqlInterpolatedAsync($"UPDATE \"reservation\" SET \"IsBooked\"={false}  WHERE \"ReservationId\"={reservationId}");
@@ -348,20 +348,20 @@ namespace SmartCityWebApi.Infrastructure.Repository
             else
             {
 
-               return await _smartCityContext.Database.ExecuteSqlInterpolatedAsync($"UPDATE \"order\" SET \"UpdateTime\"=now(),\"OrderStatus\"={(int)OrderStatusEnum.RefundPending} WHERE \"OrderId\"={id}")>0;
+                return await _smartCityContext.Database.ExecuteSqlInterpolatedAsync($"UPDATE \"order\" SET \"UpdateTime\"=now(),\"OrderStatus\"={(int)OrderStatusEnum.RefundPending} WHERE \"OrderId\"={id}") > 0;
             }
-        
+
         }
 
-        public async ValueTask<bool> Pay(long id,string orderNo)
+        public async ValueTask<bool> Pay(long id, string orderNo)
         {
-            return await _smartCityContext.Database.ExecuteSqlInterpolatedAsync($"UPDATE \"order\" SET \"UpdateTime\"=now(),\"OrderNo\"={orderNo} WHERE \"OrderId\" ={id}")>0;
-           
+            return await _smartCityContext.Database.ExecuteSqlInterpolatedAsync($"UPDATE \"order\" SET \"UpdateTime\"=now(),\"OrderNo\"={orderNo} WHERE \"OrderId\" ={id}") > 0;
+
         }
 
-        public async ValueTask<bool> LimitOrder(string openId, DateTime startTime, DateTime endTime) 
+        public async ValueTask<bool> LimitOrder(string openId, DateTime startTime, DateTime endTime)
         {
-            int[] status = new int[] 
+            int[] status = new int[]
             {
               (int)OrderStatusEnum.RefusalToRefund,
               (int)OrderStatusEnum.RefundPending,
