@@ -287,8 +287,8 @@ namespace SmartCityWebApi.Controllers.Mobile
                 {
                     return new JsonResult(new { code = "FAIL", message = "参数转换失败" });
                 }
-                _logger.LogInformation("接收到微信支付推送的解析后数据：{0}", wechatTenpayEvent);
                 var partnerTransactionResource = client.DecryptEventResource<PartnerTransactionResource>(wechatTenpayEvent);
+                _logger.LogInformation("接收到微信支付推送的解析后数据：{0}", JsonConvert.SerializeObject(partnerTransactionResource));
                 if (partnerTransactionResource.TradeState == "SUCCESS")
                 {
                     await using (var handle = await _synchronizationProvider.TryAcquireLockAsync($"NotifyOrder:{partnerTransactionResource.OutTradeNumber}"))
@@ -352,19 +352,6 @@ namespace SmartCityWebApi.Controllers.Mobile
                 {
                     mobileResModel.Status = false;
                     mobileResModel.Msg = "该场地活动已开始,无法退款";
-                    return mobileResModel;
-                }
-                var reservation = await _reservationRepository.ReservationInfo(order.ReservationId);
-                if (reservation == null)
-                {
-                    mobileResModel.Status = false;
-                    mobileResModel.Msg = "该预订记录不存在";
-                    return mobileResModel;
-                }
-                if (reservation.StartTime < DateTime.Now)
-                {
-                    mobileResModel.Status = false;
-                    mobileResModel.Msg = "该场地所选时间段活动已开始";
                     return mobileResModel;
                 }
                 var spaceSetting = await _custSpaceRepository.GetCustSpaceSettingInfo();
@@ -477,6 +464,25 @@ namespace SmartCityWebApi.Controllers.Mobile
             {
                 mobileResModel.Status = false;
                 mobileResModel.Msg = "该订单已取消,无法支付";
+                return mobileResModel;
+            }
+            var reservation = await _reservationRepository.ReservationInfo(order.ReservationId);
+            if (reservation == null)
+            {
+                mobileResModel.Status = false;
+                mobileResModel.Msg = "该预订记录不存在";
+                return mobileResModel;
+            }
+            if (reservation.ReservationStatus != 1)
+            {
+                mobileResModel.Status = false;
+                mobileResModel.Msg = "该场地所选时间段已预订";
+                return mobileResModel;
+            }
+            if (reservation.StartTime < DateTime.Now)
+            {
+                mobileResModel.Status = false;
+                mobileResModel.Msg = "该场地所选时间段活动已开始";
                 return mobileResModel;
             }
             var spaceSetting = await _custSpaceRepository.GetCustSpaceSettingInfo();
