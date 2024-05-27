@@ -20,24 +20,7 @@ namespace SmartCityWebApi.Controllers.Mobile
         {
             MobileResModel mobileResModel = new MobileResModel();
             var now = DateTime.Now;
-            DateTime endDate;
-            if (now.ToWeekName() == "星期一")
-            {
-                if (now >= Convert.ToDateTime("09:00"))
-                {
-                    endDate = now.AddDays(7);
-                }
-                else
-                {
-                    endDate=now;
-                }
-                
-            }
-            else
-            {
-                int week = (int)now.DayOfWeek;
-                endDate = now.AddDays(7 - (week == 0 ? 7 : week) + 1);
-            }
+            DateTime endDate = _reservationRepository.GetMaxDate(now);
             var list = await _reservationRepository.GetReservationList(DateOnly.Parse(now.ToString("yyyy-MM-dd")), false, DateOnly.Parse(endDate.ToString("yyyy-MM-dd")));
             var query = list.GroupBy(r => r.ReservationDate).OrderBy(r => r.Key);
             var data = new List<ReservationTag>();
@@ -79,6 +62,13 @@ namespace SmartCityWebApi.Controllers.Mobile
         {
             MobileResModel mobileResModel = new MobileResModel();
             var now = DateTime.Now;
+            DateTime endDate = _reservationRepository.GetMaxDate(now);
+            if (date.Date > endDate.Date)
+            {
+                mobileResModel.Status = false;
+                mobileResModel.Msg = "该时间段未开放";
+                return mobileResModel;
+            }
             var list = await _reservationRepository.GetReservationList(DateOnly.Parse(date.ToString("yyyy-MM-dd")), true);
             var query = list.GroupBy(r => r.ReservationDate).OrderBy(r => r.Key);
             ReservationTag? tag = null;
@@ -107,7 +97,7 @@ namespace SmartCityWebApi.Controllers.Mobile
 
                     });
                 }
-                tag.InitStatus(true,true);
+                tag.InitStatus(true, true);
             }
             mobileResModel.Status = true;
             mobileResModel.Data = tag;
@@ -115,23 +105,23 @@ namespace SmartCityWebApi.Controllers.Mobile
         }
 
         [HttpGet("Info/{id:long}")]
-        public async ValueTask<MobileResModel> ReservationInfo(long id) 
+        public async ValueTask<MobileResModel> ReservationInfo(long id)
         {
             MobileResModel mobileResModel = new MobileResModel();
-            var model= await _reservationRepository.ReservationInfo(id);
-            if (model == null) 
+            var model = await _reservationRepository.ReservationInfo(id);
+            if (model == null)
             {
                 mobileResModel.Status = false;
                 mobileResModel.Msg = "该预约场地不存在";
                 return mobileResModel;
             }
-            if (model.IsBooked|| model.ReservationStatus == 0)
+            if (model.IsBooked || model.ReservationStatus == 0)
             {
                 mobileResModel.Status = false;
                 mobileResModel.Msg = "该场地已预约";
                 return mobileResModel;
             }
-            if (model.StartTime<=DateTime.Now)
+            if (model.StartTime <= DateTime.Now)
             {
                 mobileResModel.Status = false;
                 mobileResModel.Msg = "该场地预约时间已结束";
@@ -141,7 +131,7 @@ namespace SmartCityWebApi.Controllers.Mobile
             mobileResModel.Data = new
             {
                 model.ReservationId,
-                ReservationDate= model.ReservationDate+$" ({DateOnly.Parse(model.ReservationDate).ToWeekName()})",
+                ReservationDate = model.ReservationDate + $" ({DateOnly.Parse(model.ReservationDate).ToWeekName()})",
                 model.SpaceName,
                 ReservationTime = model.StartTime.ToString("HH:ss") + "~" + model.EndTime.ToString("HH:ss"),
                 model.Money

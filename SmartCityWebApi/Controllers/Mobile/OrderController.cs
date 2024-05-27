@@ -115,7 +115,15 @@ namespace SmartCityWebApi.Controllers.Mobile
                             mobileResModel.Msg = "该场地所选时间段活动已开始";
                             return mobileResModel;
                         }
+                       
                         var now = DateTime.Now;
+                        var maxDate = _reservationRepository.GetMaxDate(DateTime.Now);
+                        if (reservation.StartTime.Date > maxDate.Date)
+                        {
+                            mobileResModel.Status = false;
+                            mobileResModel.Msg = "该时间段未开放";
+                            return mobileResModel;
+                        }
                         var startTime = Convert.ToDateTime(_setting.LimitTimeOfDay);
                         var endTime = Convert.ToDateTime("00:00").AddDays(1);
                         if (now.ToWeekName() == _setting.LimitWeekName && now >= startTime)
@@ -483,6 +491,13 @@ namespace SmartCityWebApi.Controllers.Mobile
             {
                 mobileResModel.Status = false;
                 mobileResModel.Msg = "该场地所选时间段活动已开始";
+                return mobileResModel;
+            }
+            var maxDate = _reservationRepository.GetMaxDate(DateTime.Now);
+            if (reservation.StartTime.Date > maxDate.Date)
+            {
+                mobileResModel.Status = false;
+                mobileResModel.Msg = "该时间段未开放";
                 return mobileResModel;
             }
             var spaceSetting = await _custSpaceRepository.GetCustSpaceSettingInfo();

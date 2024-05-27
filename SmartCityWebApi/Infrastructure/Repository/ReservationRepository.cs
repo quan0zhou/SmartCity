@@ -1,7 +1,9 @@
 ﻿using IdGen;
 using Microsoft.EntityFrameworkCore;
+using OfficeOpenXml.FormulaParsing.Excel.Functions.DateTime;
 using SmartCityWebApi.Domain;
 using SmartCityWebApi.Domain.IRepository;
+using SmartCityWebApi.Extensions;
 using SmartCityWebApi.Models;
 using System.Linq.Dynamic.Core;
 
@@ -15,6 +17,29 @@ namespace SmartCityWebApi.Infrastructure.Repository
         {
             _smartCityContext = smartCityContext;
             _idGenerator = idGenerator;
+        }
+
+        public DateTime GetMaxDate(DateTime now)
+        {
+            DateTime endDate;
+            if (now.ToWeekName() == "星期一")
+            {
+                if (now >= Convert.ToDateTime("09:00"))
+                {
+                    endDate = now.AddDays(7);
+                }
+                else
+                {
+                    endDate = now;
+                }
+
+            }
+            else
+            {
+                int week = (int)now.DayOfWeek;
+                endDate = now.AddDays(7 - (week == 0 ? 7 : week) + 1);
+            }
+            return endDate;
         }
 
         public async ValueTask<IEnumerable<Reservation>> GetReservationList(DateOnly date, bool isEqual, DateOnly? endDate = null)

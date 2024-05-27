@@ -11,5 +11,8 @@ namespace SmartCityWebApi.Domain.IRepository
         ValueTask<bool> SetReservationMoney(long[] ids, decimal money);
 
         ValueTask<ReservationItem?> ReservationInfo(long id);
+
+        DateTime GetMaxDate(DateTime dateTime);
+
     }
 }
