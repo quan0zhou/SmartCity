@@ -13,6 +13,7 @@ using SmartCityWebApi.Domain.IRepository;
 using SmartCityWebApi.Extensions;
 using SmartCityWebApi.Infrastructure;
 using SmartCityWebApi.Infrastructure.Repository;
+using SmartCityWebApi.Middleware;
 using SmartCityWebApi.Models;
 using StackExchange.Redis;
 using System.Net;
@@ -127,12 +128,15 @@ app.UseExceptionHandler(exceptionHandlerApp =>
      });
  });
 
- // Configure the HTTP request pipeline.
+// Configure the HTTP request pipeline.
 // if (app.Environment.IsDevelopment())
 //{
 //    app.UseSwagger();
 //    app.UseSwaggerUI();
 //}
+
+// 添加请求日志中间件
+app.UseRequestLogging();
 app.UseSwagger();
 app.UseSwaggerUI();
 app.UseCors();
