@@ -23,7 +23,7 @@ namespace SmartCityWebApi.Middleware
             _next = next;
             _logger = logger;
             _cache = cache;
-            _requestLimit = 100; // 默认100次请求
+            _requestLimit = 150; // 默认150次请求
             _timeWindowSeconds = 60; // 默认1分钟窗口期
 
             // 添加白名单路径，这些路径不受请求限制
@@ -59,7 +59,7 @@ namespace SmartCityWebApi.Middleware
             }
 
             // 增加请求计数
-            string counterKey = $"ip:counter:{ip}";
+            string counterKey = $"ip:counter:{ip}:{DateTime.Now.ToString("yyyy-MM-dd HH:mm")}";
             string counterValue = await _cache.GetStringAsync(counterKey);
             int requestCount = 1;
 
